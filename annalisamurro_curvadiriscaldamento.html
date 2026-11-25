@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Passaggi di Stato dell'Acqua e Curva di Riscaldamento</title>
+  <style>
+    /* ==========================================================================
+       VARIABILI CSS E RESET
+       Palette termodinamica: freddo (ghiaccio), medio (acqua), caldo (vapore)
+       ========================================================================== */
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-subtle: #e2e8f0;
+
+      /* Colori di fase */
+      --ice-primary: #38bdf8;
+      --ice-dark: #0284c7;
+      --ice-bg: #e0f2fe;
+
+      --water-primary: #2563eb;
+      --water-dark: #1d4ed8;
+      --water-bg: #dbeafe;
+
+      --steam-primary: #f97316;
+      --steam-dark: #ea580c;
+      --steam-bg: #ffedd5;
+
+      --hot-primary: #ef4444;
+      --hot-bg: #fee2e2;
+
+      /* Colore dinamico corrente (aggiornato via JS) */
+      --accent-current: #38bdf8;
+      --accent-bg-current: #e0f2fe;
+
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 1rem;
+      min-height: 100vh;
+    }
+
+    /* ==========================================================================
+       LAYOUT PRINCIPALE (Header + Griglia Responsive a 2 Colonne)
+       ========================================================================== */
+    .app-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    header {
+      background: var(--bg-card);
+      padding: 1.25rem 1.75rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    header h1 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    header p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    .badge-temp {
+      font-size: 1.35rem;
+      font-weight: 800;
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      background-color: var(--accent-bg-current);
+      color: var(--accent-current);
+      border: 2px solid var(--accent-current);
+      font-variant-numeric: tabular-nums;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (max-width: 980px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       COLONNA SINISTRA: SIMULAZIONE PARTICELLARE + TERMOMETRO + CONTROLLI
+       ========================================================================== */
+    .micro-stage {
+      display: flex;
+      gap: 1rem;
+      align-items: stretch;
+      height: 310px;
+    }
+
+    .particle-wrapper {
+      flex: 1;
+      position: relative;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 2px solid #cbd5e1;
+      background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+    }
+
+    #particleCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .burner-indicator {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(90deg, #f97316, #ef4444, #f97316);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .burner-indicator.active {
+      opacity: 1;
+      animation: pulseFlame 1s infinite alternate;
+    }
+
+    @keyframes pulseFlame {
+      from { filter: brightness(0.95); }
+      to { filter: brightness(1.3); }
+    }
+
+    /* Termometro Visivo */
+    .thermometer-box {
+      width: 74px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.65rem 0.35rem;
+      user-select: none;
+    }
+
+    .thermo-label-top {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .thermo-tube-area {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0.35rem 0;
+    }
+
+    .thermo-tube {
+      width: 14px;
+      height: 100%;
+      background: #e2e8f0;
+      border-radius: 999px;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid #94a3b8;
+      z-index: 2;
+    }
+
+    .thermo-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 20%;
+      background: var(--accent-current);
+      transition: background-color 0.2s ease;
+    }
+
+    .thermo-bulb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--accent-current);
+      border: 2px solid #94a3b8;
+      margin-top: -6px;
+      z-index: 3;
+      transition: background-color 0.2s ease;
+    }
+
+    /* Tacche di riferimento 0°C e 100°C sul termometro */
+    .thermo-tick {
+      position: absolute;
+      right: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .thermo-tick::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 1.5px;
+      background: #64748b;
+    }
+
+    /* Pannello Controlli */
+    .controls-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .heat-value {
+      color: var(--water-dark);
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(
+        90deg,
+        #38bdf8 0%,
+        #38bdf8 10%,
+        #7dd3fc 26%,
+        #2563eb 54%,
+        #f97316 90%,
+        #ef4444 100%
+      );
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid var(--text-main);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      cursor: grab;
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:active {
+      transform: scale(1.15);
+      cursor: grabbing;
+    }
+
+    .playback-buttons {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.55rem 1rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: #f8fafc;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      background: #e2e8f0;
+    }
+
+    button.btn-primary {
+      background: var(--water-primary);
+      color: #ffffff;
+      border-color: var(--water-dark);
+    }
+
+    button.btn-primary:hover {
+      background: var(--water-dark);
+    }
+
+    button.btn-warning {
+      background: #f59e0b;
+      color: #ffffff;
+      border-color: #d97706;
+    }
+
+    .quick-jumps-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .quick-jumps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+      gap: 0.45rem;
+    }
+
+    .btn-phase {
+      font-size: 0.78rem;
+      padding: 0.45rem 0.5rem;
+      text-align: center;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .btn-phase.active-phase {
+      background: var(--accent-bg-current);
+      border-color: var(--accent-current);
+      color: var(--text-main);
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px var(--accent-current);
+    }
+
+    /* ==========================================================================
+       COLONNA DESTRA: GRAFICO CURVA DI RISCALDAMENTO + BOX DIDATTICO
+       ========================================================================== */
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 310px;
+    }
+
+    #curveCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Box Didattico Contestuale */
+    .didactic-box {
+      border-left: 6px solid var(--accent-current);
+      transition: border-color 0.25s ease;
+    }
+
+    .phase-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .phase-pill {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      background: var(--accent-bg-current);
+      color: var(--text-main);
+    }
+
+    .temp-behavior {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .didactic-text {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 0.85rem;
+    }
+
+    .latent-callout {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-left: 4px solid #f59e0b;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      color: #78350f;
+      display: none; /* Visibile solo durante le soste termiche */
+    }
+
+    .latent-callout.visible {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .sensible-callout {
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      padding: 0.7rem 1rem;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- INTESTAZIONE -->
+    <header>
+      <div>
+        <h1>🧪 Passaggi di Stato dell'Acqua &amp; Curva di Riscaldamento</h1>
+        <p>Esplora come varia la temperatura e come si comportano le molecole d'acqua fornendo calore costante.</p>
+      </div>
+      <div class="badge-temp" id="headerTempBadge">-20,0 °C</div>
+    </header>
+
+    <!-- GRIGLIA PRINCIPALE -->
+    <main class="main-grid">
+
+      <!-- COLONNA SINISTRA: Vista Microscopica e Controlli -->
+      <section class="column">
+        <div class="card">
+          <div class="card-title">
+            <span>🔬 Vista Microscopica (Molecole H₂O)</span>
+            <span id="microStateTag" style="font-size: 0.82rem; color: var(--text-muted);">Reticolo cristallino</span>
+          </div>
+
+          <div class="micro-stage">
+            <!-- Canvas Particellare -->
+            <div class="particle-wrapper">
+              <canvas id="particleCanvas"></canvas>
+              <div class="burner-indicator" id="burnerBar" title="Fornello acceso: somministrazione di calore"></div>
+            </div>
+
+            <!-- Termometro Visivo -->
+            <div class="thermometer-box" aria-label="Termometro">
+              <span class="thermo-label-top">120°C</span>
+              <div class="thermo-tube-area">
+                <!-- Tacca 100°C: (100 - (-20)) / 140 = 120 / 140 = 85.7% dal basso -->
+                <div class="thermo-tick" style="bottom: 85.7%;">100°</div>
+                <!-- Tacca 0°C: (0 - (-20)) / 140 = 20 / 140 = 14.3% dal basso -->
+                <div class="thermo-tick" style="bottom: 14.3%;">0°</div>
+
+                <div class="thermo-tube">
+                  <div class="thermo-fill" id="thermoFill"></div>
+                </div>
+              </div>
+              <div class="thermo-bulb" id="thermoBulb"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pannello Controlli -->
+        <div class="card controls-section">
+          <div>
+            <div class="slider-header">
+              <label for="heatSlider">🔥 Calore fornito / Tempo di riscaldamento</label>
+              <span class="heat-value" id="heatReadout">0 kJ (0%)</span>
+            </div>
+            <input type="range" id="heatSlider" min="0" max="100" step="0.1" value="0" />
+          </div>
+
+          <div class="playback-buttons">
+            <button type="button" class="btn-primary" id="btnPlayPause">▶ Avvia Riscaldamento</button>
+            <button type="button" id="btnReset">↺ Reset (-20°C)</button>
+          </div>
+
+          <div>
+            <div class="quick-jumps-label">Salta direttamente a una fase:</div>
+            <div class="quick-jumps" id="quickJumpsContainer">
+              <button type="button" class="btn-phase" data-target="4">1. Ghiaccio</button>
+              <button type="button" class="btn-phase" data-target="18">2. Fusione (0°C)</button>
+              <button type="button" class="btn-phase" data-target="40">3. Acqua Liquida</button>
+              <button type="button" class="btn-phase" data-target="72">4. Ebollizione (100°C)</button>
+              <button type="button" class="btn-phase" data-target="95">5. Vapore</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLONNA DESTRA: Grafico Curva di Riscaldamento + Box Didattico -->
+      <section class="column">
+        <div class="card">
+          <div class="card-title">
+            <span>📈 Curva di Riscaldamento dell'Acqua (1 atm)</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Temperatura vs Calore fornito (Q)</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="curveCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Box Didattico Contestuale -->
+        <div class="card didactic-box" id="didacticCard">
+          <div class="card-title" style="margin-bottom: 0.4rem;">
+            <span>💡 Cosa sta succedendo?</span>
+          </div>
+
+          <div class="phase-header">
+            <span class="phase-pill" id="phaseBadge">1. Riscaldamento del Solido (Ghiaccio)</span>
+            <span class="temp-behavior" id="tempBehaviorBadge">🌡️ Temperatura in aumento</span>
+          </div>
+
+          <p class="didactic-text" id="didacticDescription"></p>
+
+          <!-- Evidenziazione Calore Latente (visibile solo nelle soste termiche) -->
+          <div class="latent-callout" id="latentCallout">
+            <strong>⚡ Concetto Chiave — Sosta Termica e Calore Latente:</strong><br />
+            <span id="latentText"></span>
+          </div>
+
+          <!-- Spiegazione Calore Sensibile (visibile nei tratti inclinati) -->
+          <div class="sensible-callout" id="sensibleCallout">
+            <strong>🌡️ Calore Sensibile:</strong> L'energia termica assorbita fa aumentare l'energia cinetica media delle molecole (si muovono più velocemente), facendo salire la temperatura registrata dal termometro.
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * MODELLO FISICO E DIDATTICO DELLA CURVA DI RISCALDAMENTO DELL'ACQUA
+     * ============================================================================
+     * Rappresentiamo l'avanzamento del calore fornito Q tramite una variabile
+     * normalizzata `progress` da 0 a 100.
+     *
+     * I 5 tratti della curva sono mappati sui seguenti intervalli di `progress`:
+     *   1. [0  -> 10] : Riscaldamento Ghiaccio     (-20°C -> 0°C)   [pendenza +]
+     *   2. [10 -> 26] : Sosta Termica 1 - Fusione  (0°C costante)   [orizzontale]
+     *   3. [26 -> 54] : Riscaldamento Liquido      (0°C -> 100°C)   [pendenza +]
+     *   4. [54 -> 90] : Sosta Termica 2 - Eboll.   (100°C costante) [orizzontale]
+     *   5. [90 -> 100]: Riscaldamento Vapore       (100°C -> 120°C) [pendenza +]
+     *
+     * Nota didattica: La sosta di ebollizione (36 unità) è volutamente più lunga
+     * della sosta di fusione (16 unità) per rispecchiare la realtà fisica:
+     * il calore latente di vaporizzazione dell'acqua (~2260 kJ/kg) è quasi 7 volte
+     * maggiore del calore latente di fusione (~334 kJ/kg)!
+     */
+
+    const CURVE_POINTS = [
+      { q: 0,   t: -20 },
+      { q: 10,  t: 0   },
+      { q: 26,  t: 0   },
+      { q: 54,  t: 100 },
+      { q: 90,  t: 100 },
+      { q: 100, t: 120 }
+    ];
+
+    const PHASES_DATA = [
+      {
+        id: 0,
+        name: "1. Stato Solido (Ghiaccio)",
+        microTag: "Reticolo cristallino ordinato",
+        tempBehavior: "📈 Temperatura in aumento (-20°C → 0°C)",
+        color: "#0284c7",
+        bg: "#e0f2fe",
+        isLatent: false,
+        description:
+          "L'acqua è allo stato solido. Le molecole H₂O sono bloccate in un reticolo cristallino esagonale ordinato grazie a forti legami a idrogeno. Fornendo calore, le molecole vibrano sempre più intensamente attorno alla loro posizione fissa, senza però poter scivolare le une sulle altre."
+      },
+      {
+        id: 1,
+        name: "2. Fusione (Sosta Termica a 0°C)",
+        microTag: "Coesistenza Solido + Liquido",
+        tempBehavior: "⏸️ Temperatura COSTANTE a 0°C",
+        color: "#0ea5e9",
+        bg: "#e0f2fe",
+        isLatent: true,
+        description:
+          "A 0°C inizia il passaggio da solido a liquido (fusione). Nel contenitore coesistono ghiaccio e acqua liquida: man mano che il fornello cede energia, il reticolo ordinato si sgretola progressivamente.",
+        latentDetail:
+          "Anche se continuiamo a fornire calore, il termometro resta fermo a 0°C finché tutto il ghiaccio non è fuso! Tutta l'energia assorbita (calore latente di fusione) viene usata per rompere i legami rigidi del cristallo, non per aumentare la velocità delle molecole."
+      },
+      {
+        id: 2,
+        name: "3. Stato Liquido (Acqua)",
+        microTag: "Molecole vicine ma disordinate",
+        tempBehavior: "📈 Temperatura in aumento (0°C → 100°C)",
+        color: "#2563eb",
+        bg: "#dbeafe",
+        isLatent: false,
+        description:
+          "Tutto il ghiaccio si è trasformato in acqua liquida. Le molecole restano vicine tra loro (volume proprio), ma non hanno più posizioni fisse: scivolano e scorrono liberamente adattandosi alla forma del contenitore. Più sale la temperatura, più velocemente si muovono."
+      },
+      {
+        id: 3,
+        name: "4. Ebollizione (Sosta Termica a 100°C)",
+        microTag: "Coesistenza Liquido + Aeriforme",
+        tempBehavior: "⏸️ Temperatura COSTANTE a 100°C",
+        color: "#f97316",
+        bg: "#ffedd5",
+        isLatent: true,
+        description:
+          "A 100°C (a pressione atmosferica) l'acqua bolle: in tutto il volume del liquido si formano bolle di vapore. Le molecole più energetiche vincono completamente l'attrazione reciproca e fuggono verso l'alto.",
+        latentDetail:
+          "Il termometro resta bloccato a 100°C per tutta la durata dell'ebollizione! Il calore fornito (calore latente di vaporizzazione) serve esclusivamente a spezzare tutti i legami tra le molecole d'acqua per liberarle allo stato aeriforme. Nota quanto è lungo questo tratto: far evaporare l'acqua richiede moltissima energia!"
+      },
+      {
+        id: 4,
+        name: "5. Stato Aeriforme (Vapore Acqueo)",
+        microTag: "Gas disordinato ad alta energia",
+        tempBehavior: "📈 Temperatura in aumento (100°C → 120°C)",
+        color: "#ef4444",
+        bg: "#fee2e2",
+        isLatent: false,
+        description:
+          "Tutta l'acqua è diventata vapore (gas). Le molecole sono lontanissime tra loro, non hanno più alcun legame che le trattenga e si muovono a grande velocità in linea retta, urtando le pareti e occupando tutto il volume disponibile."
+      }
+    ];
+
+    // Stato globale dell'applicazione
+    const state = {
+      progress: 0,      // 0..100 (asse Q)
+      isPlaying: false,
+      lastTimestamp: 0,
+      speed: 6.5        // unità di progress al secondo durante Play
+    };
+
+    // Calcola temperatura (°C), indice di fase (0..4) e frazione interna alla fase (0..1)
+    function evaluateCurve(q) {
+      if (q <= 10) {
+        const f = q / 10;
+        return { temp: -20 + f * 20, phaseIdx: 0, phaseFraction: f };
+      } else if (q <= 26) {
+        const f = (q - 10) / 16;
+        return { temp: 0, phaseIdx: 1, phaseFraction: f };
+      } else if (q <= 54) {
+        const f = (q - 26) / 28;
+        return { temp: f * 100, phaseIdx: 2, phaseFraction: f };
+      } else if (q <= 90) {
+        const f = (q - 54) / 36;
+        return { temp: 100, phaseIdx: 3, phaseFraction: f };
+      } else {
+        const f = (q - 90) / 10;
+        return { temp: 100 + f * 20, phaseIdx: 4, phaseFraction: f };
+      }
+    }
+
+    /* ============================================================================
+       RIFERIMENTI DOM
+       ============================================================================ */
+    const slider = document.getElementById("heatSlider");
+    const btnPlayPause = document.getElementById("btnPlayPause");
+    const btnReset = document.getElementById("btnReset");
+    const headerTempBadge = document.getElementById("headerTempBadge");
+    const heatReadout = document.getElementById("heatReadout");
+    const thermoFill = document.getElementById("thermoFill");
+    const thermoBulb = document.getElementById("thermoBulb");
+    const burnerBar = document.getElementById("burnerBar");
+    const microStateTag = document.getElementById("microStateTag");
+
+    const phaseBadge = document.getElementById("phaseBadge");
+    const tempBehaviorBadge = document.getElementById("tempBehaviorBadge");
+    const didacticDescription = document.getElementById("didacticDescription");
+    const latentCallout = document.getElementById("latentCallout");
+    const latentText = document.getElementById("latentText");
+    const sensibleCallout = document.getElementById("sensibleCallout");
+    const phaseButtons = document.querySelectorAll(".btn-phase");
+
+    const particleCanvas = document.getElementById("particleCanvas");
+    const pCtx = particleCanvas.getContext("2d");
+
+    const curveCanvas = document.getElementById("curveCanvas");
+    const cCtx = curveCanvas.getContext("2d");
+
+    /* ============================================================================
+       SISTEMA PARTICELLARE (36 Molecole H2O)
+       ============================================================================ */
+    const NUM_PARTICLES = 36;
+    const particles = [];
+
+    function initParticles() {
+      particles.length = 0;
+      const cols = 6;
+      const rows = 6;
+
+      for (let i = 0; i < NUM_PARTICLES; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+
+        // Ordine di "fusione" mescolato per un effetto naturale
+        const meltOrder = ((i * 7 + 3) % NUM_PARTICLES) / NUM_PARTICLES;
+        // Ordine di "evaporazione" mescolato
+        const boilOrder = ((i * 11 + 5) % NUM_PARTICLES) / NUM_PARTICLES;
+
+        const angle = Math.random() * Math.PI * 2;
+        particles.push({
+          id: i,
+          col,
+          row,
+          meltOrder,
+          boilOrder,
+          // Posizioni normalizzate [0..1]
+          x: 0.25 + (col / (cols - 1)) * 0.5,
+          y: 0.55 + (row / (rows - 1)) * 0.38,
+          vx: Math.cos(angle),
+          vy: Math.sin(angle),
+          phaseOffset: Math.random() * Math.PI * 2,
+          orientation: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    // Disegna una singola molecola d'acqua stilizzata (Ossigeno + 2 Idrogeni)
+    function drawWaterMolecule(ctx, x, y, radius, angle, colorMain) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      // Due atomi di Idrogeno (bianchi con bordo) a ~104.5°
+      const hDist = radius * 0.85;
+      const hRad = radius * 0.45;
+      const halfAngle = (104.5 * Math.PI) / 360;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 1.2;
+
+      [-halfAngle, halfAngle].forEach((a) => {
+        const hx = Math.cos(a) * hDist;
+        const hy = Math.sin(a) * hDist;
+        ctx.beginPath();
+        ctx.arc(hx, hy, hRad, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      // Atomo centrale di Ossigeno
+      ctx.fillStyle = colorMain;
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.35)";
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 0.78, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Punto luce
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.beginPath();
+      ctx.arc(-radius * 0.25, -radius * 0.25, radius * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function updateAndDrawParticles(dt, timeSec) {
+      const rect = particleCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      if (particleCanvas.width !== Math.round(rect.width * dpr) ||
+          particleCanvas.height !== Math.round(rect.height * dpr)) {
+        particleCanvas.width = Math.round(rect.width * dpr);
+        particleCanvas.height = Math.round(rect.height * dpr);
+      }
+
+      const W = rect.width;
+      const H = rect.height;
+      pCtx.save();
+      pCtx.scale(dpr, dpr);
+      pCtx.clearRect(0, 0, W, H);
+
+      const { temp, phaseIdx, phaseFraction } = evaluateCurve(state.progress);
+      const radius = Math.max(8, Math.min(11, W / 42));
+
+      // Livello del liquido nel recipiente (scende man mano che l'acqua evapora)
+      let liquidSurfaceY = H * 0.48;
+      if (phaseIdx === 3) {
+        liquidSurfaceY = H * (0.48 + phaseFraction * 0.46);
+      } else if (phaseIdx === 4) {
+        liquidSurfaceY = H;
+      }
+
+      // Disegna acqua di sfondo se presente fase liquida
+      if (phaseIdx === 1 || phaseIdx === 2 || (phaseIdx === 3 && phaseFraction < 0.98)) {
+        const waterAlpha = phaseIdx === 1 ? 0.12 + phaseFraction * 0.18 : 0.28;
+        pCtx.fillStyle = `rgba(37, 99, 235, ${waterAlpha})`;
+        pCtx.fillRect(0, liquidSurfaceY, W, H - liquidSurfaceY);
+
+        // Linea pelo libero dell'acqua
+        pCtx.strokeStyle = "rgba(37, 99, 235, 0.45)";
+        pCtx.lineWidth = 2;
+        pCtx.beginPath();
+        pCtx.moveTo(0, liquidSurfaceY);
+        pCtx.lineTo(W, liquidSurfaceY);
+        pCtx.stroke();
+      }
+
+      // Parametri del reticolo cristallino (per solido e parte non fusa)
+      const cols = 6;
+      const rows = 6;
+      const gridWidth = Math.min(W * 0.56, 230);
+      const gridHeight = Math.min(H * 0.42, 130);
+      const gridStartX = (W - gridWidth) / 2;
+      const gridStartY = H - gridHeight - 22;
+
+      // Disegna legami a idrogeno tra particelle ancora solide
+      if (phaseIdx === 0 || phaseIdx === 1) {
+        pCtx.strokeStyle = "rgba(56, 189, 248, 0.55)";
+        pCtx.lineWidth = 1.5;
+        pCtx.setLineDash([3, 3]);
+
+        particles.forEach((p) => {
+          const isSolid = phaseIdx === 0 || p.meltOrder > phaseFraction;
+          if (!isSolid) return;
+
+          const gx = gridStartX + (p.col / (cols - 1)) * gridWidth;
+          const gy = gridStartY + (p.row / (rows - 1)) * gridHeight;
+
+          // Connetti al vicino destro e inferiore se anch'essi solidi
+          particles.forEach((other) => {
+            const otherSolid = phaseIdx === 0 || other.meltOrder > phaseFraction;
+            if (!otherSolid) return;
+            const dCol = other.col - p.col;
+            const dRow = other.row - p.row;
+            if ((dCol === 1 && dRow === 0) || (dCol === 0 && dRow === 1)) {
+              const ox = gridStartX + (other.col / (cols - 1)) * gridWidth;
+              const oy = gridStartY + (other.row / (rows - 1)) * gridHeight;
+              pCtx.beginPath();
+              pCtx.moveTo(gx, gy);
+              pCtx.lineTo(ox, oy);
+              pCtx.stroke();
+            }
+          });
+        });
+        pCtx.setLineDash([]);
+      }
+
+      // Aggiorna e disegna ciascuna molecola
+      particles.forEach((p) => {
+        // Determina lo stato individuale della molecola
+        let molState = "solid";
+        if (phaseIdx === 0) {
+          molState = "solid";
+        } else if (phaseIdx === 1) {
+          molState = p.meltOrder <= phaseFraction ? "liquid" : "solid";
+        } else if (phaseIdx === 2) {
+          molState = "liquid";
+        } else if (phaseIdx === 3) {
+          molState = p.boilOrder <= phaseFraction ? "gas" : "liquid";
+        } else {
+          molState = "gas";
+        }
+
+        let px = p.x * W;
+        let py = p.y * H;
+        let molColor = "#38bdf8";
+
+        if (molState === "solid") {
+          // Vibrazione attorno al nodo del reticolo proporzionale alla T (-20°C -> 0°C)
+          const tempFactor = Math.max(0.2, (temp + 25) / 25);
+          const amp = 1.6 * tempFactor;
+          const freq = 14 + tempFactor * 10;
+
+          const homeX = gridStartX + (p.col / (cols - 1)) * gridWidth;
+          const homeY = gridStartY + (p.row / (rows - 1)) * gridHeight;
+
+          px = homeX + Math.sin(timeSec * freq + p.phaseOffset) * amp;
+          py = homeY + Math.cos(timeSec * (freq * 1.1) + p.id) * amp;
+
+          // Sincronizza posizione normalizzata in caso passi a liquido
+          p.x = px / W;
+          p.y = py / H;
+          p.orientation = Math.sin(timeSec * 4 + p.id) * 0.15;
+          molColor = "#38bdf8";
+        } else if (molState === "liquid") {
+          // Movimento fluido confinato sotto il pelo libero dell'acqua
+          const speedBase = 45 + (temp / 100) * 115; // da 45 px/s a 160 px/s
+          px += p.vx * speedBase * dt;
+          py += p.vy * speedBase * dt;
+          p.orientation += dt * (1.5 + temp / 40);
+
+          // Rimbalzo sulle pareti laterali e fondo
+          const minX = radius + 4;
+          const maxX = W - radius - 4;
+          const minY = Math.min(H - radius * 2.5, liquidSurfaceY + radius + 2);
+          const maxY = H - radius - 4;
+
+          if (px < minX) { px = minX; p.vx = Math.abs(p.vx); }
+          if (px > maxX) { px = maxX; p.vx = -Math.abs(p.vx); }
+          if (py < minY) { py = minY; p.vy = Math.abs(p.vy); }
+          if (py > maxY) { py = maxY; p.vy = -Math.abs(p.vy); }
+
+          // Leggera perturbazione casuale per simulare urti tra molecole
+          p.vx += (Math.random() - 0.5) * 2.2 * dt;
+          p.vy += (Math.random() - 0.5) * 2.2 * dt;
+          const norm = Math.hypot(p.vx, p.vy) || 1;
+          p.vx /= norm;
+          p.vy /= norm;
+
+          p.x = px / W;
+          p.y = py / H;
+          molColor = "#2563eb";
+        } else {
+          // Stato aeriforme: movimento rapido in tutto il contenitore
+          const gasSpeed = 195 + Math.max(0, temp - 100) * 6.5;
+          px += p.vx * gasSpeed * dt;
+          py += p.vy * gasSpeed * dt;
+          p.orientation += dt * 5.5;
+
+          const minX = radius + 4;
+          const maxX = W - radius - 4;
+          const minY = radius + 4;
+          const maxY = H - radius - 4;
+
+          if (px < minX) { px = minX; p.vx = Math.abs(p.vx); }
+          if (px > maxX) { px = maxX; p.vx = -Math.abs(p.vx); }
+          if (py < minY) { py = minY; p.vy = Math.abs(p.vy); }
+          if (py > maxY) { py = maxY; p.vy = -Math.abs(p.vy); }
+
+          p.x = px / W;
+          p.y = py / H;
+          molColor = temp > 102 ? "#ef4444" : "#f97316";
+        }
+
+        drawWaterMolecule(pCtx, px, py, radius, p.orientation, molColor);
+      });
+
+      // Bolle di vapore visive nel liquido durante l'ebollizione
+      if (phaseIdx === 3) {
+        pCtx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+        pCtx.fillStyle = "rgba(255, 255, 255, 0.35)";
+        pCtx.lineWidth = 1.5;
+        for (let b = 0; b < 7; b++) {
+          const bx = ((b * 67 + 30) % (W - 40)) + 20;
+          const cycle = (timeSec * (0.9 + (b % 3) * 0.25) + b * 0.37) % 1;
+          const by = H - cycle * (H - liquidSurfaceY);
+          if (by > liquidSurfaceY) {
+            pCtx.beginPath();
+            pCtx.arc(bx, by, 4 + (b % 3) * 2, 0, Math.PI * 2);
+            pCtx.fill();
+            pCtx.stroke();
+          }
+        }
+      }
+
+      pCtx.restore();
+    }
+
+    /* ============================================================================
+       GRAFICO DINAMICO DELLA CURVA DI RISCALDAMENTO (Canvas 2D)
+       ============================================================================ */
+    function drawHeatingCurve() {
+      const rect = curveCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      if (curveCanvas.width !== Math.round(rect.width * dpr) ||
+          curveCanvas.height !== Math.round(rect.height * dpr)) {
+        curveCanvas.width = Math.round(rect.width * dpr);
+        curveCanvas.height = Math.round(rect.height * dpr);
+      }
+
+      const W = rect.width;
+      const H = rect.height;
+      cCtx.save();
+      cCtx.scale(dpr, dpr);
+      cCtx.clearRect(0, 0, W, H);
+
+      // Margini interni per assi ed etichette
+      const pad = { top: 24, right: 24, bottom: 42, left: 54 };
+      const plotW = W - pad.left - pad.right;
+      const plotH = H - pad.top - pad.bottom;
+
+      const minT = -20;
+      const maxT = 120;
+
+      // Funzioni di proiezione coordinate (Q in [0..100], T in [-20..120])
+      const toX = (q) => pad.left + (q / 100) * plotW;
+      const toY = (t) => pad.top + plotH - ((t - minT) / (maxT - minT)) * plotH;
+
+      // 1. Fasce verticali di sfondo per distinguere i 5 tratti
+      const segments = [
+        { q0: 0,  q1: 10,  fill: "rgba(56, 189, 248, 0.08)", label: "Solido" },
+        { q0: 10, q1: 26,  fill: "rgba(14, 165, 233, 0.14)", label: "Fusione" },
+        { q0: 26, q1: 54,  fill: "rgba(37, 99, 235, 0.08)",  label: "Liquido" },
+        { q0: 54, q1: 90,  fill: "rgba(249, 115, 22, 0.13)", label: "Ebollizione" },
+        { q0: 90, q1: 100, fill: "rgba(239, 68, 68, 0.09)",  label: "Gas" }
+      ];
+
+      const { temp: curT, phaseIdx: activePhaseIdx } = evaluateCurve(state.progress);
+
+      segments.forEach((seg, idx) => {
+        const x0 = toX(seg.q0);
+        const w = toX(seg.q1) - x0;
+        cCtx.fillStyle = idx === activePhaseIdx ? seg.fill.replace(/0\.\d+\)/, "0.24)") : seg.fill;
+        cCtx.fillRect(x0, pad.top, w, plotH);
+
+        // Etichetta superiore del tratto (se c'è abbastanza spazio)
+        if (w > 34) {
+          cCtx.fillStyle = idx === activePhaseIdx ? "#0f172a" : "#64748b";
+          cCtx.font = idx === activePhaseIdx ? "bold 11px sans-serif" : "11px sans-serif";
+          cCtx.textAlign = "center";
+          cCtx.fillText(seg.label, x0 + w / 2, pad.top + 14);
+        }
+      });
+
+      // 2. Griglia orizzontale e tacche Asse Y (Temperatura)
+      const yTicks = [-20, 0, 20, 40, 60, 80, 100, 120];
+      cCtx.font = "11px sans-serif";
+      cCtx.textAlign = "right";
+      cCtx.textBaseline = "middle";
+
+      yTicks.forEach((tVal) => {
+        const y = toY(tVal);
+        const isCritical = tVal === 0 || tVal === 100;
+
+        cCtx.strokeStyle = isCritical ? "rgba(100, 116, 139, 0.45)" : "rgba(203, 213, 225, 0.6)";
+        cCtx.lineWidth = isCritical ? 1.3 : 1;
+        cCtx.setLineDash(isCritical ? [4, 4] : []);
+
+        cCtx.beginPath();
+        cCtx.moveTo(pad.left, y);
+        cCtx.lineTo(W - pad.right, y);
+        cCtx.stroke();
+
+        cCtx.fillStyle = isCritical ? "#0f172a" : "#64748b";
+        cCtx.font = isCritical ? "bold 11px sans-serif" : "11px sans-serif";
+        cCtx.fillText(`${tVal}°C`, pad.left - 8, y);
+      });
+      cCtx.setLineDash([]);
+
+      // 3. Assi cartesiani principali
+      cCtx.strokeStyle = "#334155";
+      cCtx.lineWidth = 1.8;
+      cCtx.beginPath();
+      cCtx.moveTo(pad.left, pad.top);
+      cCtx.lineTo(pad.left, pad.top + plotH);
+      cCtx.lineTo(W - pad.right, pad.top + plotH);
+      cCtx.stroke();
+
+      // Titoli degli assi
+      cCtx.fillStyle = "#334155";
+      cCtx.font = "bold 12px sans-serif";
+      cCtx.textAlign = "center";
+      cCtx.fillText("Calore fornito (Q) / Tempo →", pad.left + plotW / 2, H - 12);
+
+      cCtx.save();
+      cCtx.translate(15, pad.top + plotH / 2);
+      cCtx.rotate(-Math.PI / 2);
+      cCtx.fillText("Temperatura (°C)", 0, 0);
+      cCtx.restore();
+
+      // 4. Disegno della curva completa (traccia base grigia/azzurra)
+      cCtx.strokeStyle = "#94a3b8";
+      cCtx.lineWidth = 3.5;
+      cCtx.lineCap = "round";
+      cCtx.lineJoin = "round";
+      cCtx.beginPath();
+      CURVE_POINTS.forEach((pt, idx) => {
+        const px = toX(pt.q);
+        const py = toY(pt.t);
+        if (idx === 0) cCtx.moveTo(px, py);
+        else cCtx.lineTo(px, py);
+      });
+      cCtx.stroke();
+
+      // 5. Tratto percorso finora (colorato in base alla fase attiva)
+      const phaseColor = PHASES_DATA[activePhaseIdx].color;
+      cCtx.strokeStyle = phaseColor;
+      cCtx.lineWidth = 4.5;
+      cCtx.beginPath();
+      cCtx.moveTo(toX(0), toY(-20));
+
+      for (let i = 1; i < CURVE_POINTS.length; i++) {
+        const pt = CURVE_POINTS[i];
+        if (state.progress >= pt.q) {
+          cCtx.lineTo(toX(pt.q), toY(pt.t));
+        } else {
+          cCtx.lineTo(toX(state.progress), toY(curT));
+          break;
+        }
+      }
+      cCtx.stroke();
+
+      // Nodi di transizione sulla curva
+      CURVE_POINTS.forEach((pt) => {
+        cCtx.fillStyle = "#ffffff";
+        cCtx.strokeStyle = "#475569";
+        cCtx.lineWidth = 2;
+        cCtx.beginPath();
+        cCtx.arc(toX(pt.q), toY(pt.t), 4, 0, Math.PI * 2);
+        cCtx.fill();
+        cCtx.stroke();
+      });
+
+      // 6. Linee guida tratteggiate dal cursore agli assi + Punto Luminoso
+      const curX = toX(state.progress);
+      const curY = toY(curT);
+
+      cCtx.strokeStyle = phaseColor;
+      cCtx.lineWidth = 1.4;
+      cCtx.setLineDash([4, 3]);
+      cCtx.beginPath();
+      cCtx.moveTo(pad.left, curY);
+      cCtx.lineTo(curX, curY);
+      cCtx.lineTo(curX, pad.top + plotH);
+      cCtx.stroke();
+      cCtx.setLineDash([]);
+
+      // Alone luminoso
+      cCtx.fillStyle = phaseColor + "40"; // trasparenza
+      cCtx.beginPath();
+      cCtx.arc(curX, curY, 13, 0, Math.PI * 2);
+      cCtx.fill();
+
+      // Punto centrale
+      cCtx.fillStyle = phaseColor;
+      cCtx.strokeStyle = "#ffffff";
+      cCtx.lineWidth = 2.5;
+      cCtx.beginPath();
+      cCtx.arc(curX, curY, 6.5, 0, Math.PI * 2);
+      cCtx.fill();
+      cCtx.stroke();
+
+      // Etichetta flottante vicino al cursore
+      const labelText = `${curT.toFixed(1).replace(".", ",")} °C`;
+      cCtx.font = "bold 12px sans-serif";
+      const textW = cCtx.measureText(labelText).width + 12;
+      let boxX = curX - textW / 2;
+      let boxY = curY - 28;
+      if (boxX < pad.left + 4) boxX = pad.left + 4;
+      if (boxX + textW > W - pad.right - 4) boxX = W - pad.right - textW - 4;
+      if (boxY < pad.top + 4) boxY = curY + 14;
+
+      cCtx.fillStyle = "#0f172a";
+      cCtx.beginPath();
+      cCtx.roundRect(boxX, boxY, textW, 20, 6);
+      cCtx.fill();
+
+      cCtx.fillStyle = "#ffffff";
+      cCtx.textAlign = "center";
+      cCtx.textBaseline = "middle";
+      cCtx.fillText(labelText, boxX + textW / 2, boxY + 10);
+
+      cCtx.restore();
+    }
+
+    /* ============================================================================
+       AGGIORNAMENTO INTERFACCIA E BOX DIDATTICO
+       ============================================================================ */
+    let lastRenderedPhaseIdx = -1;
+
+    function syncUI() {
+      const { temp, phaseIdx } = evaluateCurve(state.progress);
+      const phaseInfo = PHASES_DATA[phaseIdx];
+
+      // Aggiorna variabili CSS dinamiche per colori coerenti
+      document.documentElement.style.setProperty("--accent-current", phaseInfo.color);
+      document.documentElement.style.setProperty("--accent-bg-current", phaseInfo.bg);
+
+      // Badge temperatura e lettura calore
+      const formattedTemp = `${temp.toFixed(1).replace(".", ",")} °C`;
+      headerTempBadge.textContent = formattedTemp;
+
+      // Valore indicativo in kJ per 1 kg di acqua (totale ciclo ~3090 kJ)
+      const approxKJ = Math.round((state.progress / 100) * 3090);
+      heatReadout.textContent = `${approxKJ} kJ (${Math.round(state.progress)}%)`;
+
+      // Slider sincronizzato
+      slider.value = state.progress;
+
+      // Termometro visivo: altezza proporzionale da -20°C (8%) a 120°C (98%)
+      const tempNorm = (temp - (-20)) / 140;
+      const fillPercent = 8 + tempNorm * 90;
+      thermoFill.style.height = `${fillPercent}%`;
+
+      // Indicatore fornello acceso
+      burnerBar.classList.toggle("active", state.isPlaying);
+
+      // Aggiorna testi didattici solo quando cambia fase per evitare sfarfallii DOM
+      if (phaseIdx !== lastRenderedPhaseIdx) {
+        lastRenderedPhaseIdx = phaseIdx;
+
+        microStateTag.textContent = phaseInfo.microTag;
+        phaseBadge.textContent = phaseInfo.name;
+        tempBehaviorBadge.textContent = phaseInfo.tempBehavior;
+        didacticDescription.textContent = phaseInfo.description;
+
+        if (phaseInfo.isLatent) {
+          latentCallout.classList.add("visible");
+          latentText.textContent = phaseInfo.latentDetail;
+          sensibleCallout.style.display = "none";
+        } else {
+          latentCallout.classList.remove("visible");
+          sensibleCallout.style.display = "block";
+        }
+
+        // Evidenzia pulsante fase attiva
+        phaseButtons.forEach((btn, idx) => {
+          btn.classList.toggle("active-phase", idx === phaseIdx);
+        });
+      }
+
+      drawHeatingCurve();
+    }
+
+    /* ============================================================================
+       GESTIONE EVENTI E LOOP DI ANIMAZIONE (requestAnimationFrame)
+       ============================================================================ */
+    function setPlaying(play) {
+      state.isPlaying = play;
+      if (play) {
+        if (state.progress >= 100) state.progress = 0;
+        btnPlayPause.textContent = "⏸ Pausa";
+        btnPlayPause.classList.remove("btn-primary");
+        btnPlayPause.classList.add("btn-warning");
+      } else {
+        btnPlayPause.textContent = "▶ Avvia Riscaldamento";
+        btnPlayPause.classList.remove("btn-warning");
+        btnPlayPause.classList.add("btn-primary");
+      }
+      syncUI();
+    }
+
+    slider.addEventListener("input", (e) => {
+      state.progress = parseFloat(e.target.value);
+      if (state.isPlaying) setPlaying(false);
+      syncUI();
+    });
+
+    btnPlayPause.addEventListener("click", () => {
+      setPlaying(!state.isPlaying);
+    });
+
+    btnReset.addEventListener("click", () => {
+      setPlaying(false);
+      state.progress = 0;
+      syncUI();
+    });
+
+    phaseButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const targetQ = parseFloat(btn.dataset.target);
+        state.progress = targetQ;
+        syncUI();
+      });
+    });
+
+    window.addEventListener("resize", () => {
+      drawHeatingCurve();
+    });
+
+    function animationLoop(timestamp) {
+      if (!state.lastTimestamp) state.lastTimestamp = timestamp;
+      const dt = Math.min(0.05, (timestamp - state.lastTimestamp) / 1000);
+      state.lastTimestamp = timestamp;
+
+      if (state.isPlaying) {
+        state.progress += state.speed * dt;
+        if (state.progress >= 100) {
+          state.progress = 100;
+          setPlaying(false);
+        }
+        syncUI();
+      }
+
+      updateAndDrawParticles(dt, timestamp / 1000);
+      requestAnimationFrame(animationLoop);
+    }
+
+    // Avvio iniziale
+    initParticles();
+    syncUI();
+    requestAnimationFrame(animationLoop);
+  </script>
+</body>
+</html>
