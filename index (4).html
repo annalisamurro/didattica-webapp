@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Didattica WebApp — Prof.ssa Annalisa Murro (Scienze Naturali)</title>
+  <style>
+    :root {
+      --green-dark: #1b4332;
+      --green-main: #2d6a4f;
+      --green-light: #52b788;
+      --cream: rgba(255, 255, 255, 0.92);
+      --glass: rgba(255, 255, 255, 0.85);
+      --text-main: #1f2933;
+      --text-muted: #4b5563;
+      --accent-amber: #d97706;
+      --shadow: 0 14px 35px rgba(27, 67, 50, 0.18);
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: #87ceeb;
+      position: relative;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Sfondo naturalistico a prato fiorito (SVG integrato, sempre visibile anche offline) */
+    .meadow-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #9ad9f5 0%, #d8f3dc 48%, #74c69d 68%, #40916c 100%);
+      overflow: hidden;
+    }
+
+    .meadow-bg svg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Barra superiore con intestazione in alto a destra */
+    header {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 24px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .portal-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 10px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: var(--green-dark);
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 6px 18px rgba(27, 67, 50, 0.12);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .portal-link:hover {
+      transform: translateY(-2px);
+      background: #ffffff;
+    }
+
+    .teacher-badge {
+      margin-left: auto;
+      text-align: right;
+      background: var(--cream);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 14px 22px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow);
+    }
+
+    .teacher-badge .full-name {
+      font-size: 1.12rem;
+      font-weight: 800;
+      color: var(--green-dark);
+      letter-spacing: -0.01em;
+    }
+
+    .teacher-badge .short-name {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: #d8f3dc;
+      color: var(--green-dark);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    /* Contenitore principale */
+    main {
+      width: 100%;
+      max-width: 1200px;
+      margin: 12px auto 48px;
+      padding: 0 24px;
+      flex: 1;
+    }
+
+    .hero {
+      background: var(--cream);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+      color: var(--green-dark);
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 0 auto 22px;
+      color: var(--text-muted);
+      font-size: 1.03rem;
+    }
+
+    /* Filtri disciplina */
+    .filters {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filter-btn {
+      border: 1.5px solid var(--green-main);
+      background: #ffffff;
+      color: var(--green-dark);
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: var(--green-main);
+      color: #ffffff;
+      box-shadow: 0 6px 14px rgba(45, 106, 79, 0.25);
+    }
+
+    /* Griglia delle App */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 26px;
+    }
+
+    .app-card {
+      background: var(--cream);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .app-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 42px rgba(27, 67, 50, 0.24);
+    }
+
+    .app-card.hidden {
+      display: none;
+    }
+
+    /* Immagine cliccabile */
+    .card-image-link {
+      display: block;
+      position: relative;
+      height: 210px;
+      overflow: hidden;
+      text-decoration: none;
+      background: #eef7f0;
+    }
+
+    .card-image-link svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+
+    .card-image-link:hover svg {
+      transform: scale(1.05);
+    }
+
+    .img-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(27, 67, 50, 0.42);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .card-image-link:hover .img-overlay {
+      opacity: 1;
+    }
+
+    .img-overlay span {
+      background: #ffffff;
+      color: var(--green-dark);
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Corpo scheda */
+    .card-body {
+      padding: 22px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .tag {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e6f4ea;
+      color: var(--green-dark);
+    }
+
+    .card-body h2 {
+      font-size: 1.32rem;
+      color: var(--green-dark);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    .card-body p {
+      font-size: 0.96rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+      flex: 1;
+    }
+
+    .didactic-note {
+      background: #f4faf6;
+      border-left: 4px solid var(--green-light);
+      padding: 10px 12px;
+      border-radius: 0 10px 10px 0;
+      font-size: 0.87rem;
+      color: #2f483b;
+      margin-bottom: 20px;
+    }
+
+    .launch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--green-main), var(--green-dark));
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.96rem;
+      transition: filter 0.2s ease, transform 0.2s ease;
+    }
+
+    .launch-btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    /* Footer */
+    footer {
+      background: rgba(27, 67, 50, 0.9);
+      color: #e9f5ee;
+      text-align: center;
+      padding: 18px 20px;
+      font-size: 0.9rem;
+      backdrop-filter: blur(8px);
+    }
+
+    footer a {
+      color: #b7e4c7;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 680px) {
+      header {
+        flex-direction: column-reverse;
+        align-items: stretch;
+      }
+      .teacher-badge {
+        margin-left: 0;
+        text-align: right;
+      }
+      .hero {
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sfondo Prato Fiorito -->
+  <div class="meadow-bg" aria-hidden="true">
+    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#8ecae6"/>
+          <stop offset="55%" stop-color="#d8f3dc"/>
+          <stop offset="100%" stop-color="#b7e4c7"/>
+        </linearGradient>
+        <linearGradient id="hillBack" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#74c69d"/>
+          <stop offset="100%" stop-color="#40916c"/>
+        </linearGradient>
+        <linearGradient id="hillMid" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#52b788"/>
+          <stop offset="100%" stop-color="#2d6a4f"/>
+        </linearGradient>
+        <linearGradient id="hillFront" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#40916c"/>
+          <stop offset="100%" stop-color="#1b4332"/>
+        </linearGradient>
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff8d6" stop-opacity="0.95"/>
+          <stop offset="50%" stop-color="#ffe699" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#ffe699" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Cielo e Sole -->
+      <rect width="1440" height="900" fill="url(#sky)"/>
+      <circle cx="230" cy="150" r="150" fill="url(#sunGlow)"/>
+      <circle cx="230" cy="150" r="46" fill="#fffbeb" opacity="0.9"/>
+
+      <!-- Nuvole leggere -->
+      <g fill="#ffffff" opacity="0.65">
+        <ellipse cx="520" cy="130" rx="85" ry="26"/>
+        <ellipse cx="570" cy="120" rx="60" ry="24"/>
+        <ellipse cx="1080" cy="160" rx="100" ry="28"/>
+        <ellipse cx="1145" cy="150" rx="65" ry="22"/>
+      </g>
+
+      <!-- Colline del prato -->
+      <path d="M0,520 Q360,410 720,490 T1440,460 L1440,900 L0,900 Z" fill="url(#hillBack)"/>
+      <path d="M0,610 Q420,510 860,600 T1440,560 L1440,900 L0,900 Z" fill="url(#hillMid)"/>
+      <path d="M0,720 Q340,650 760,730 T1440,680 L1440,900 L0,900 Z" fill="url(#hillFront)"/>
+
+      <!-- Fili d'erba stilizzati -->
+      <g stroke="#2d6a4f" stroke-width="3" fill="none" opacity="0.55">
+        <path d="M80,900 Q95,820 115,780"/>
+        <path d="M120,900 Q110,830 92,795"/>
+        <path d="M310,900 Q325,830 345,790"/>
+        <path d="M580,900 Q570,835 552,800"/>
+        <path d="M890,900 Q910,825 930,785"/>
+        <path d="M1180,900 Q1170,820 1145,780"/>
+        <path d="M1340,900 Q1360,835 1385,790"/>
+      </g>
+
+      <!-- Fiori di campo (margherite e fiori gialli/lilla) -->
+      <g>
+        <!-- Margherite -->
+        <g transform="translate(140,790)">
+          <circle cx="0" cy="-10" r="6" fill="#fff"/><circle cx="10" cy="0" r="6" fill="#fff"/>
+          <circle cx="0" cy="10" r="6" fill="#fff"/><circle cx="-10" cy="0" r="6" fill="#fff"/>
+          <circle cx="0" cy="0" r="6" fill="#facc15"/>
+        </g>
+        <g transform="translate(430,820) scale(0.9)">
+          <circle cx="0" cy="-10" r="6" fill="#fff"/><circle cx="10" cy="0" r="6" fill="#fff"/>
+          <circle cx="0" cy="10" r="6" fill="#fff"/><circle cx="-10" cy="0" r="6" fill="#fff"/>
+          <circle cx="0" cy="0" r="6" fill="#facc15"/>
+        </g>
+        <g transform="translate(1030,810) scale(1.05)">
+          <circle cx="0" cy="-10" r="6" fill="#fff"/><circle cx="10" cy="0" r="6" fill="#fff"/>
+          <circle cx="0" cy="10" r="6" fill="#fff"/><circle cx="-10" cy="0" r="6" fill="#fff"/>
+          <circle cx="0" cy="0" r="6" fill="#facc15"/>
+        </g>
+        <g transform="translate(1290,775) scale(0.85)">
+          <circle cx="0" cy="-10" r="6" fill="#fff"/><circle cx="10" cy="0" r="6" fill="#fff"/>
+          <circle cx="0" cy="10" r="6" fill="#fff"/><circle cx="-10" cy="0" r="6" fill="#fff"/>
+          <circle cx="0" cy="0" r="6" fill="#facc15"/>
+        </g>
+        <!-- Fiori colorati sul prato -->
+        <circle cx="250" cy="750" r="6" fill="#fde047" opacity="0.9"/>
+        <circle cx="670" cy="785" r="7" fill="#f472b6" opacity="0.85"/>
+        <circle cx="790" cy="835" r="6" fill="#fde047" opacity="0.9"/>
+        <circle cx="940" cy="760" r="6" fill="#c084fc" opacity="0.85"/>
+        <circle cx="1160" cy="840" r="7" fill="#fb7185" opacity="0.85"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Header con nome docente in alto a destra -->
+  <header>
+    <a class="portal-link" href="https://annalisa8677.github.io/didattica-webapp/" target="_blank" rel="noopener">
+      🌿 didattica-webapp
+    </a>
+
+    <div class="teacher-badge">
+      <div class="full-name">Prof.ssa Annalisa Murro (Scienze Naturali)</div>
+      <div class="short-name">Prof. Murro</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Sezione introduttiva -->
+    <section class="hero">
+      <h1>Laboratorio Digitale di Scienze Naturali</h1>
+      <p>
+        Menu interattivo delle applicazioni didattiche per esplorare i fenomeni della chimica,
+        della fisica e della biologia. Clicca sull'immagine o sul pulsante di ciascuna attività per avviarla.
+      </p>
+      <div class="filters" role="group" aria-label="Filtra per ambito disciplinare">
+        <button class="filter-btn active" data-filter="all">Tutte le App (3)</button>
+        <button class="filter-btn" data-filter="chimica">Chimica e Fisica</button>
+        <button class="filter-btn" data-filter="biologia">Biologia e Biochimica</button>
+      </div>
+    </section>
+
+    <!-- Griglia delle 3 WebApp -->
+    <section class="apps-grid">
+
+      <!-- APP 1: Curva di riscaldamento -->
+      <article class="app-card" data-category="chimica">
+        <a class="card-image-link"
+           href="https://annalisa8677.github.io/didattica-webapp/annalisamurro_curvadiriscaldamento.html"
+           target="_blank" rel="noopener"
+           aria-label="Apri La Curva di Riscaldamento">
+          <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bgHeat" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#e0f2fe"/>
+                <stop offset="100%" stop-color="#ffedd5"/>
+              </linearGradient>
+              <linearGradient id="curveGrad" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0%" stop-color="#2563eb"/>
+                <stop offset="50%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#dc2626"/>
+              </linearGradient>
+            </defs>
+            <rect width="400" height="220" fill="url(#bgHeat)"/>
+            <!-- Griglia assi -->
+            <line x1="55" y1="185" x2="365" y2="185" stroke="#475569" stroke-width="2.5"/>
+            <line x1="55" y1="185" x2="55" y2="28" stroke="#475569" stroke-width="2.5"/>
+            <text x="20" y="38" font-size="12" font-weight="700" fill="#334155">T (°C)</text>
+            <text x="322" y="205" font-size="12" font-weight="700" fill="#334155">Tempo</text>
+            <!-- Linee tratteggiate soste termiche -->
+            <line x1="55" y1="145" x2="180" y2="145" stroke="#94a3b8" stroke-dasharray="4 4"/>
+            <line x1="55" y1="78" x2="300" y2="78" stroke="#94a3b8" stroke-dasharray="4 4"/>
+            <!-- Curva di riscaldamento -->
+            <polyline points="55,178 105,145 180,145 235,78 305,78 355,38"
+                      fill="none" stroke="url(#curveGrad)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Etichette stati -->
+            <rect x="112" y="120" width="64" height="20" rx="6" fill="#ffffff" opacity="0.9"/>
+            <text x="144" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#1d4ed8">Fusione</text>
+            <rect x="235" y="53" width="76" height="20" rx="6" fill="#ffffff" opacity="0.9"/>
+            <text x="273" y="67" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">Ebollizione</text>
+            <!-- Termometro decorativo -->
+            <rect x="330" y="110" width="14" height="52" rx="7" fill="#fff" stroke="#64748b" stroke-width="2"/>
+            <circle cx="337" cy="166" r="11" fill="#ef4444" stroke="#64748b" stroke-width="2"/>
+            <rect x="334" y="130" width="6" height="34" rx="3" fill="#ef4444"/>
+          </svg>
+          <div class="img-overlay"><span>Apri WebApp ↗</span></div>
+        </a>
+
+        <div class="card-body">
+          <div class="tags">
+            <span class="tag">Chimica</span>
+            <span class="tag">Fisica</span>
+            <span class="tag">Passaggi di stato</span>
+          </div>
+          <h2>La Curva di Riscaldamento</h2>
+          <p>
+            Esplora il comportamento di una sostanza pura durante il riscaldamento osservando
+            il grafico Temperatura-Tempo, i cambiamenti di stato (solido, liquido, aeriforme) e le soste termiche.
+          </p>
+          <div class="didactic-note">
+            <strong>Obiettivo didattico:</strong> Comprendere il concetto di calore latente e distinguere
+            tra fase di riscaldamento e temperatura costante nei passaggi di stato.
+          </div>
+          <a class="launch-btn"
+             href="https://annalisa8677.github.io/didattica-webapp/annalisamurro_curvadiriscaldamento.html"
+             target="_blank" rel="noopener">
+            Avvia Attività →
+          </a>
+        </div>
+      </article>
+
+      <!-- APP 2: Legge di Proust -->
+      <article class="app-card" data-category="chimica">
+        <a class="card-image-link"
+           href="https://annalisa8677.github.io/didattica-webapp/annalisamurro_legge_di_proust.html"
+           target="_blank" rel="noopener"
+           aria-label="Apri La Legge di Proust">
+          <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bgProust" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ecfdf5"/>
+                <stop offset="100%" stop-color="#dbeafe"/>
+              </linearGradient>
+            </defs>
+            <rect width="400" height="220" fill="url(#bgProust)"/>
+            <!-- Bilancia analitica stilizzata -->
+            <rect x="165" y="176" width="70" height="12" rx="6" fill="#1e3a5f"/>
+            <rect x="195" y="72" width="10" height="106" rx="4" fill="#334155"/>
+            <line x1="95" y1="80" x2="305" y2="80" stroke="#1e3a5f" stroke-width="6" stroke-linecap="round"/>
+            <circle cx="200" cy="80" r="8" fill="#0f766e"/>
+            <!-- Piatti bilancia -->
+            <line x1="110" y1="82" x2="90" y2="132" stroke="#64748b" stroke-width="2"/>
+            <line x1="110" y1="82" x2="130" y2="132" stroke="#64748b" stroke-width="2"/>
+            <path d="M80,132 Q110,148 140,132 Z" fill="#0d9488"/>
+
+            <line x1="290" y1="82" x2="270" y2="132" stroke="#64748b" stroke-width="2"/>
+            <line x1="290" y1="82" x2="310" y2="132" stroke="#64748b" stroke-width="2"/>
+            <path d="M260,132 Q290,148 320,132 Z" fill="#2563eb"/>
+
+            <!-- Atomi / Rapporti di massa -->
+            <circle cx="102" cy="118" r="11" fill="#f59e0b" stroke="#fff" stroke-width="2"/>
+            <circle cx="122" cy="118" r="11" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+            <circle cx="290" cy="114" r="16" fill="#6366f1" stroke="#fff" stroke-width="2"/>
+            <text x="112" y="55" text-anchor="middle" font-size="13" font-weight="800" fill="#0f766e">m(A) : m(B)</text>
+            <text x="290" y="55" text-anchor="middle" font-size="13" font-weight="800" fill="#1d4ed8">= costante</text>
+            <!-- Formula banner -->
+            <rect x="115" y="192" width="170" height="20" rx="10" fill="#ffffff" opacity="0.9"/>
+            <text x="200" y="206" text-anchor="middle" font-size="11" font-weight="700" fill="#1e293b">Proporzioni Definite</text>
+          </svg>
+          <div class="img-overlay"><span>Apri WebApp ↗</span></div>
+        </a>
+
+        <div class="card-body">
+          <div class="tags">
+            <span class="tag">Chimica</span>
+            <span class="tag">Leggi Ponderali</span>
+            <span class="tag">Stechiometria</span>
+          </div>
+          <h2>La Legge di Proust</h2>
+          <p>
+            Scopri la legge delle proporzioni definite e costanti: gli elementi si combinano tra loro
+            secondo rapporti di massa precisi e invariabili per formare un determinato composto puro.
+          </p>
+          <div class="didactic-note">
+            <strong>Obiettivo didattico:</strong> Calcolare i rapporti di combinazione tra reagenti,
+            riconoscere il reagente limitante e verificare la conservazione della massa.
+          </div>
+          <a class="launch-btn"
+             href="https://annalisa8677.github.io/didattica-webapp/annalisamurro_legge_di_proust.html"
+             target="_blank" rel="noopener">
+            Avvia Attività →
+          </a>
+        </div>
+      </article>
+
+      <!-- APP 3: Fermentazione del pane -->
+      <article class="app-card" data-category="biologia">
+        <a class="card-image-link"
+           href="https://annalisa8677.github.io/didattica-webapp/fermentazionedelpane_passi.html"
+           target="_blank" rel="noopener"
+           aria-label="Apri La Fermentazione del Pane">
+          <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bgBread" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#fef3c7"/>
+                <stop offset="100%" stop-color="#dcfce7"/>
+              </linearGradient>
+              <linearGradient id="loafGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#b45309"/>
+              </linearGradient>
+            </defs>
+            <rect width="400" height="220" fill="url(#bgBread)"/>
+            <!-- Pagnotta di pane -->
+            <path d="M95,168 C95,105 140,86 200,86 C260,86 305,105 305,168 C305,178 296,184 285,184 L115,184 C104,184 95,178 95,168 Z"
+                  fill="url(#loafGrad)" stroke="#92400e" stroke-width="3"/>
+            <!-- Tagli sulla crosta -->
+            <path d="M142,102 Q160,115 170,132" stroke="#fde68a" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M188,96 Q206,110 216,128" stroke="#fde68a" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M236,104 Q252,118 260,134" stroke="#fde68a" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <!-- Bollicine CO2 -->
+            <g fill="#ffffff" stroke="#15803d" stroke-width="2" opacity="0.92">
+              <circle cx="130" cy="64" r="14"/>
+              <circle cx="205" cy="48" r="17"/>
+              <circle cx="275" cy="66" r="13"/>
+            </g>
+            <text x="130" y="68" text-anchor="middle" font-size="10" font-weight="800" fill="#166534">CO₂</text>
+            <text x="205" y="53" text-anchor="middle" font-size="11" font-weight="800" fill="#166534">CO₂</text>
+            <text x="275" y="70" text-anchor="middle" font-size="10" font-weight="800" fill="#166534">CO₂</text>
+            <!-- Badge lievito -->
+            <rect x="92" y="192" width="216" height="20" rx="10" fill="#ffffff" opacity="0.9"/>
+            <text x="200" y="206" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">Saccharomyces cerevisiae</text>
+          </svg>
+          <div class="img-overlay"><span>Apri WebApp ↗</span></div>
+        </a>
+
+        <div class="card-body">
+          <div class="tags">
+            <span class="tag">Biologia</span>
+            <span class="tag">Biochimica</span>
+            <span class="tag">Fermentazione</span>
+          </div>
+          <h2>La Fermentazione del Pane (Passi)</h2>
+          <p>
+            Percorso guidato passo dopo passo nella lievitazione del pane: segui l'azione dei lieviti
+            (<em>Saccharomyces cerevisiae</em>), la trasformazione degli zuccheri e la liberazione di CO₂.
+          </p>
+          <div class="didactic-note">
+            <strong>Obiettivo didattico:</strong> Comprendere le fasi della fermentazione alcolica
+            e collegare il metabolismo cellulare a un'applicazione quotidiana delle biotecnologie.
+          </div>
+          <a class="launch-btn"
+             href="https://annalisa8677.github.io/didattica-webapp/fermentazionedelpane_passi.html"
+             target="_blank" rel="noopener">
+            Avvia Attività →
+          </a>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <footer>
+    <strong>Prof.ssa Annalisa Murro (Scienze Naturali)</strong> — Portale didattico pubblicato su
+    <a href="https://annalisa8677.github.io/didattica-webapp/" target="_blank" rel="noopener">
+      annalisa8677.github.io/didattica-webapp
+    </a>
+  </footer>
+
+  <script>
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const appCards = document.querySelectorAll('.app-card');
+
+    filterButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const selected = btn.dataset.filter;
+        appCards.forEach((card) => {
+          if (selected === 'all' || card.dataset.category === selected) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
