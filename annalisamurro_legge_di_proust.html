@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legge di Proust: Le Proporzioni Definite | Laboratorio Virtuale</title>
+    <!-- Caricamento Tailwind CSS per lo styling moderno e responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Google Inter e JetBrains Mono per i dati numerici e le formule -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        lab: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Stili personalizzati per rifinire l'esperienza di laboratorio e l'accessibilità */
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+            overflow-x: hidden;
+        }
+        
+        /* Stile personalizzato per gli slider (range input) */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #0284c7;
+            cursor: pointer;
+            border: 3px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+            transition: transform 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.12);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #0284c7;
+            cursor: pointer;
+            border: 3px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+            transition: transform 0.15s ease;
+        }
+
+        /* Effetto vetro per il reattore chimico */
+        .beaker-glass {
+            background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(224,242,254,0.35) 50%, rgba(255,255,255,0.6) 100%);
+            box-shadow: inset 0 0 20px rgba(14, 165, 233, 0.15), 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Animazione flash durante la reazione */
+        @keyframes reactionPulse {
+            0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
+            70% { box-shadow: 0 0 0 18px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+        .reacting-pulse {
+            animation: reactionPulse 0.8s ease-out;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-lab-200 selection:text-lab-900">
+
+    <!-- NAVBAR / HEADER PRINCIPALE -->
+    <header class="bg-gradient-to-r from-lab-900 via-lab-800 to-slate-900 text-white shadow-lg border-b border-lab-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-start sm:items-center gap-4">
+                    <!-- Icona SVG Becher Scientifico -->
+                    <div class="p-3 bg-lab-500/20 border border-lab-400/30 rounded-2xl shrink-0">
+                        <svg class="w-9 h-9 text-lab-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4.5 3h15"/>
+                            <path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/>
+                            <path d="M6 14h12"/>
+                            <circle cx="10" cy="17" r="1" fill="currentColor"/>
+                            <circle cx="14" cy="18" r="1" fill="currentColor"/>
+                            <circle cx="12" cy="11" r="1" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-lab-500/30 text-lab-100 border border-lab-400/30 mb-1">
+                            <span>Chimica • Primo Biennio Liceo Scientifico</span>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                            Legge di Proust: Le Proporzioni Definite
+                        </h1>
+                        <p class="text-lab-100 text-sm sm:text-base mt-0.5">
+                            Laboratorio interattivo di stechiometria ponderalistica e analisi particellare
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Navigazione rapida tra le sezioni -->
+                <nav class="flex flex-wrap gap-2" aria-label="Navigazione sezioni">
+                    <a href="#teoria" class="px-3.5 py-2 rounded-xl text-sm font-medium bg-white/10 hover:bg-white/20 transition text-white">
+                        1. Teoria
+                    </a>
+                    <a href="#laboratorio" class="px-3.5 py-2 rounded-xl text-sm font-medium bg-lab-500 hover:bg-lab-400 transition text-white shadow-sm">
+                        2. Laboratorio
+                    </a>
+                    <a href="#quiz-section" class="px-3.5 py-2 rounded-xl text-sm font-medium bg-white/10 hover:bg-white/20 transition text-white">
+                        3. Sfida & Esercizi
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+        <!-- SEZIONE 1: TEORIA INTUITIVA E RIGOROSA -->
+        <section id="teoria" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-8 space-y-4">
+                    <div class="flex items-center gap-2.5 text-lab-700 font-bold text-sm uppercase tracking-wider">
+                        <span class="w-2.5 h-2.5 rounded-full bg-lab-500"></span>
+                        <span>Fondamenti Teorici (Joseph Louis Proust, 1799)</span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-900">
+                        Cosa afferma la Legge delle Proporzioni Definite?
+                    </h2>
+                    <blockquote class="p-4 bg-lab-50 border-l-4 border-lab-600 rounded-r-xl text-slate-800 font-medium leading-relaxed">
+                        «In un composto chimico, gli elementi che lo costituiscono sono sempre presenti secondo <strong>rapporti in massa definiti e costanti</strong>, indipendentemente dall'origine del composto o dal modo in cui è stato preparato.»
+                    </blockquote>
+                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
+                        A livello microscopico, questo accade perché gli atomi si legano tra loro in rapporti numerici interi e fissi (es. 2 atomi di idrogeno e 1 di ossigeno per formare una molecola d'acqua, <span class="font-mono font-semibold text-slate-800">H₂O</span>). Poiché ogni atomo ha una massa caratteristica, anche il rapporto tra le loro masse rimane sempre identico!
+                    </p>
+                </div>
+
+                <!-- Card riassuntiva Reagente Limitante vs Eccesso -->
+                <div class="lg:col-span-4 bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-3.5">
+                    <h3 class="font-bold text-slate-900 flex items-center gap-2 text-base">
+                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Conseguenza in Laboratorio
+                    </h3>
+                    <div class="text-sm text-slate-600 space-y-2.5">
+                        <div class="p-3 bg-white rounded-xl border border-slate-200/80">
+                            <span class="font-bold text-rose-600 block mb-0.5">Reagente Limitante</span>
+                            È il reagente che si consuma per primo completamente. Determina la quantità massima di prodotto che si può formare.
+                        </div>
+                        <div class="p-3 bg-white rounded-xl border border-slate-200/80">
+                            <span class="font-bold text-amber-600 block mb-0.5">Reagente in Eccesso</span>
+                            È presente in quantità superiore rispetto al rapporto fisso di Proust: la parte che non trova partner resta <strong>non reagita</strong> nel recipiente.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEZIONE 2: LABORATORIO INTERATTIVO DI SINTESI CHIMICA -->
+        <section id="laboratorio" class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-lab-600">Simulazione Sperimentale</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Laboratorio di Sintesi Chimica</h2>
+                </div>
+                <p class="text-sm text-slate-500">Seleziona un composto, dosa i reagenti e osserva la reazione a livello particellare e ponderale.</p>
+            </div>
+
+            <!-- SELETTORE COMPOSTI -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="compound-selector" role="radiogroup" aria-label="Seleziona il composto da sintetizzare">
+                <!-- Generato dinamicamente da JS -->
+            </div>
+
+            <!-- AREA OPERATIVA PRINCIPALE: CONTROLLI + REATTORE + BILANCIA -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- COLONNA SINISTRA: DOSAGGIO REAGENTI (4 colonne) -->
+                <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between space-y-6">
+                    <div class="space-y-5">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="text-lg font-bold text-slate-900">1. Dosaggio Reagenti</h3>
+                            <p class="text-xs text-slate-500 mt-0.5" id="ratio-hint-text">Rapporto stechiometrico in massa: 1 : 8</p>
+                        </div>
+
+                        <!-- Controllo Reagente A -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label for="input-mass-a" class="font-bold text-slate-800 flex items-center gap-2">
+                                    <span id="dot-a" class="w-3.5 h-3.5 rounded-full inline-block shadow-sm"></span>
+                                    <span id="label-reagent-a">Idrogeno (H)</span>
+                                </label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" id="input-mass-a" min="1" max="100" step="0.5" value="4"
+                                        class="w-20 px-2.5 py-1.5 text-right font-mono font-bold text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-lab-500 focus:border-lab-500 outline-none">
+                                    <span class="text-sm font-semibold text-slate-500">g</span>
+                                </div>
+                            </div>
+                            <input type="range" id="slider-mass-a" min="1" max="100" step="0.5" value="4" class="w-full" aria-label="Massa Reagente A in grammi">
+                            <div class="flex justify-between text-xs text-slate-400 font-mono">
+                                <span>1 g</span>
+                                <span>50 g</span>
+                                <span>100 g</span>
+                            </div>
+                        </div>
+
+                        <!-- Controllo Reagente B -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label for="input-mass-b" class="font-bold text-slate-800 flex items-center gap-2">
+                                    <span id="dot-b" class="w-3.5 h-3.5 rounded-full inline-block shadow-sm"></span>
+                                    <span id="label-reagent-b">Ossigeno (O)</span>
+                                </label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" id="input-mass-b" min="1" max="100" step="0.5" value="16"
+                                        class="w-20 px-2.5 py-1.5 text-right font-mono font-bold text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-lab-500 focus:border-lab-500 outline-none">
+                                    <span class="text-sm font-semibold text-slate-500">g</span>
+                                </div>
+                            </div>
+                            <input type="range" id="slider-mass-b" min="1" max="100" step="0.5" value="16" class="w-full" aria-label="Massa Reagente B in grammi">
+                            <div class="flex justify-between text-xs text-slate-400 font-mono">
+                                <span>1 g</span>
+                                <span>50 g</span>
+                                <span>100 g</span>
+                            </div>
+                        </div>
+
+                        <!-- Pulsanti Rapidi Preimpostati per Didattica -->
+                        <div class="space-y-1.5">
+                            <span class="text-xs font-semibold text-slate-500 block">Prove rapide consigliate:</span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" id="btn-stoich-exact" class="px-3 py-2 text-xs font-semibold rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition text-center">
+                                    Rapporto Esatto
+                                </button>
+                                <button type="button" id="btn-random-mix" class="px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition text-center">
+                                    Dosi Casuali
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pulsante Principale Avvia Reazione -->
+                    <div class="pt-2 space-y-2.5">
+                        <button type="button" id="btn-start-reaction"
+                            class="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-lab-600 to-lab-700 hover:from-lab-500 hover:to-lab-600 active:scale-[0.99] text-white font-bold text-base shadow-md shadow-lab-600/25 transition flex items-center justify-center gap-2.5 cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <span>Avvia Reazione</span>
+                        </button>
+                        <button type="button" id="btn-reset-reactor"
+                            class="w-full py-2 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-medium text-xs transition">
+                            Svuota e Prepara Nuovi Reagenti
+                        </button>
+                    </div>
+                </div>
+
+                <!-- COLONNA CENTRALE: REATTORE PARTICELLARE VISIVO (4 colonne) -->
+                <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">2. Reattore Chimico</h3>
+                            <p class="text-xs text-slate-500" id="reactor-status-text">Pronto: reagenti separati nel recipiente</p>
+                        </div>
+                        <span id="reaction-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                            In attesa
+                        </span>
+                    </div>
+
+                    <!-- Contenitore Canvas Becher -->
+                    <div class="relative w-full h-72 sm:h-80 rounded-2xl beaker-glass border-2 border-lab-200 overflow-hidden flex items-center justify-center" id="beaker-wrapper">
+                        <!-- Tacche graduate decorative sul vetro -->
+                        <div class="absolute left-3 top-6 bottom-6 w-4 flex flex-col justify-between pointer-events-none opacity-40 z-10">
+                            <div class="w-3 h-0.5 bg-slate-500"></div>
+                            <div class="w-2 h-0.5 bg-slate-500"></div>
+                            <div class="w-4 h-0.5 bg-slate-600"></div>
+                            <div class="w-2 h-0.5 bg-slate-500"></div>
+                            <div class="w-3 h-0.5 bg-slate-500"></div>
+                        </div>
+                        <canvas id="reactor-canvas" class="w-full h-full block"></canvas>
+                    </div>
+
+                    <!-- Legenda Particelle -->
+                    <div class="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-xs">
+                        <div class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            <span id="legend-dot-a" class="w-3 h-3 rounded-full shrink-0"></span>
+                            <span id="legend-name-a" class="font-medium text-slate-700 truncate">Atomi H</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            <span id="legend-dot-b" class="w-3 h-3 rounded-full shrink-0"></span>
+                            <span id="legend-name-b" class="font-medium text-slate-700 truncate">Atomi O</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 bg-lab-50 p-2 rounded-lg border border-lab-100">
+                            <span class="flex -space-x-1 shrink-0">
+                                <span id="legend-mol-1" class="w-2.5 h-2.5 rounded-full"></span>
+                                <span id="legend-mol-2" class="w-2.5 h-2.5 rounded-full"></span>
+                            </span>
+                            <span id="legend-product-name" class="font-bold text-lab-800 truncate">H₂O</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLONNA DESTRA: BILANCIA DI PRECISIONE & ANALISI PONDERALE (4 colonne) -->
+                <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between space-y-5">
+                    <div class="space-y-4">
+                        <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">3. Bilancia & Analisi</h3>
+                                <p class="text-xs text-slate-500">Dati ponderali dopo la reazione</p>
+                            </div>
+                            <span class="font-mono text-xs font-bold px-2 py-1 rounded bg-slate-100 text-slate-600">±0.01 g</span>
+                        </div>
+
+                        <!-- Display digitale stile bilancia analitica -->
+                        <div class="bg-slate-900 text-emerald-400 rounded-2xl p-4 font-mono border-2 border-slate-800 shadow-inner space-y-2">
+                            <div class="flex justify-between items-center text-xs text-slate-400">
+                                <span>MASSA INIZIALE TOTALE</span>
+                                <span id="bal-initial-mass" class="text-base font-bold text-white">20.00 g</span>
+                            </div>
+                            <div class="h-px bg-slate-800"></div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-emerald-300/80">PRODOTTO FORMATO (<span id="bal-prod-formula">H₂O</span>)</span>
+                                <span id="bal-product-mass" class="text-xl font-bold text-emerald-400">-- g</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-amber-300/80">ECCESSO NON REAGITO</span>
+                                <span id="bal-excess-mass" class="text-base font-bold text-amber-400">-- g</span>
+                            </div>
+                        </div>
+
+                        <!-- Box Diagnosi Reagente Limitante ed Eccesso -->
+                        <div id="diagnosis-box" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm space-y-1.5">
+                            <p class="font-semibold text-slate-700">Premi "Avvia Reazione" per analizzare i risultati.</p>
+                            <p class="text-xs text-slate-500">Verificheremo chi si esaurisce per primo e il rapporto tra le masse effettivamente reagite.</p>
+                        </div>
+
+                        <!-- Verifica Legge di Proust & Lavoisier -->
+                        <div class="grid grid-cols-2 gap-2.5 pt-1">
+                            <div class="p-3 rounded-xl bg-lab-50 border border-lab-200">
+                                <span class="text-[11px] font-bold uppercase text-lab-700 block">Rapporto Reagito (mₐ/mᵦ)</span>
+                                <span id="proust-ratio-value" class="font-mono text-lg font-extrabold text-lab-900 mt-0.5 block">--</span>
+                                <span id="proust-ratio-target" class="text-[11px] text-lab-600">Atteso: 0.125</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                                <span class="text-[11px] font-bold uppercase text-emerald-700 block">Legge di Lavoisier</span>
+                                <span id="lavoisier-check" class="font-mono text-sm font-extrabold text-emerald-900 mt-1 block">In attesa...</span>
+                                <span class="text-[11px] text-emerald-700">m_iniz = m_fin</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pulsante Registra nel Quaderno -->
+                    <button type="button" id="btn-save-experiment" disabled
+                        class="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-semibold text-sm transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span>Registra Prova nella Tabella</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- REGISTRO DEGLI ESPERIMENTI E GRAFICO PROPORZIONALITÀ DIRETTA -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900">Registro Sperimentale & Verifica Grafica</h3>
+                        <p class="text-sm text-slate-500">
+                            Salva più prove per <strong id="log-compound-name" class="text-slate-700">Acqua (H₂O)</strong>: noterai che il rapporto <span class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">m(A reagita) / m(B reagita)</span> è una costante e i punti nel grafico si allineano su una retta passante per l'origine!
+                        </p>
+                    </div>
+                    <button type="button" id="btn-clear-log" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition self-start sm:self-auto">
+                        Svuota Registro
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <!-- Tabella Dati (7 colonne) -->
+                    <div class="lg:col-span-7 overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase text-slate-600">
+                                    <th class="py-3 px-3">#</th>
+                                    <th class="py-3 px-3" id="th-a-init">m(H) iniz.</th>
+                                    <th class="py-3 px-3" id="th-b-init">m(O) iniz.</th>
+                                    <th class="py-3 px-3 text-emerald-700">Prodotto</th>
+                                    <th class="py-3 px-3 text-amber-700">Eccesso</th>
+                                    <th class="py-3 px-3 text-lab-700 bg-lab-50/70">Rapporto mₐ/mᵦ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="experiment-table-body" class="divide-y divide-slate-100 font-mono text-xs sm:text-sm">
+                                <tr id="empty-log-row">
+                                    <td colspan="6" class="py-8 px-4 text-center font-sans text-slate-400">
+                                        Nessuna prova registrata per questo composto. Esegui una reazione e clicca su <strong>"Registra Prova nella Tabella"</strong>.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Grafico Cartesiano m(A reagita) vs m(B reagita) (5 colonne) -->
+                    <div class="lg:col-span-5 bg-slate-50 rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-slate-700">Grafico di Proporzionalità Diretta</span>
+                            <span class="text-[11px] font-mono text-lab-700 bg-lab-100 px-2 py-0.5 rounded" id="chart-slope-label">Pendenza k = 0.125</span>
+                        </div>
+                        <div class="relative w-full h-56 bg-white rounded-lg border border-slate-200 overflow-hidden">
+                            <canvas id="proust-chart-canvas" class="w-full h-full block"></canvas>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-2 text-center">
+                            La linea tratteggiata rappresenta la legge teorica <span class="font-mono">y = k · x</span>. I punti sperimentali cadono esattamente sulla retta.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEZIONE 3: MODALITÀ SFIDA / ESERCIZI GUIDATI -->
+        <section id="quiz-section" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Allenamento Stechiometrico</span>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Modalità Sfida: Mettiti alla Prova!</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Risolvi i problemi tipici della verifica del primo biennio usando la Legge di Proust.</p>
+                </div>
+                <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-200 px-4 py-2.5 rounded-2xl self-start sm:self-auto">
+                    <div class="text-right">
+                        <span class="text-[11px] font-bold uppercase text-indigo-600 block">Punteggio</span>
+                        <span class="font-mono text-xl font-extrabold text-indigo-950"><span id="quiz-score">0</span> / <span id="quiz-total">0</span></span>
+                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">
+                        ★
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Domanda Corrente -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 space-y-5">
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span id="quiz-category-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-800">
+                                Calcolo del Prodotto
+                            </span>
+                            <span id="quiz-compound-hint" class="text-xs font-mono font-semibold text-slate-500">
+                                Composto: H₂O (1 : 8)
+                            </span>
+                        </div>
+                        <p id="quiz-question-text" class="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed">
+                            Caricamento esercizio...
+                        </p>
+                    </div>
+
+                    <!-- Area Risposta -->
+                    <div id="quiz-answer-area" class="space-y-4">
+                        <!-- Input numerico oppure opzioni a scelta multipla iniettate da JS -->
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 pt-1">
+                        <button type="button" id="btn-check-answer" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-sm transition">
+                            Verifica Risposta
+                        </button>
+                        <button type="button" id="btn-next-question" class="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm transition">
+                            Nuovo Esercizio →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pannello Spiegazione Passo-Passo -->
+                <div class="lg:col-span-5">
+                    <div id="quiz-feedback-panel" class="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[220px] flex flex-col justify-center">
+                        <div class="text-center space-y-2 text-slate-400">
+                            <svg class="w-10 h-10 mx-auto opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                            <p class="text-sm font-medium text-slate-600">Inserisci la tua risposta per vedere la risoluzione passo-passo.</p>
+                            <p class="text-xs">Suggerimento: imposta sempre la proporzione usando il rapporto definito di Proust!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER DIDATTICO -->
+    <footer class="bg-slate-900 text-slate-400 py-8 mt-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm">
+            <p>
+                <strong class="text-white">Laboratorio Virtuale di Chimica</strong> • Progettato per la didattica delle Scienze Naturali (Primo Biennio Liceo Scientifico).
+            </p>
+            <p class="font-mono text-slate-500">
+                Legge di Proust (1799) & Legge di Lavoisier (1789)
+            </p>
+        </div>
+    </footer>
+
+    <!-- LOGICA APPLICATIVA JAVASCRIPT (Simulatore, Canvas Particellare, Grafico, Quiz) -->
+    <script>
+        /**
+         * DATABASE DEI COMPOSTI CHIMICI
+         * Rapporti in massa semplificati standard per il primo biennio del liceo scientifico.
+         */
+        const COMPOUNDS = [
+            {
+                id: 'h2o',
+                name: 'Acqua',
+                formula: 'H₂O',
+                reagentA: { symbol: 'H', name: 'Idrogeno', color: '#38bdf8', stroke: '#0284c7', radius: 7 },
+                reagentB: { symbol: 'O', name: 'Ossigeno', color: '#f43f5e', stroke: '#be123c', radius: 11 },
+                ratioA: 1,
+                ratioB: 8,
+                exampleText: '1 g di H reagisce con 8 g di O → 9 g di H₂O',
+                atomsPerMoleculeA: 2,
+                atomsPerMoleculeB: 1,
+                defaultA: 4,
+                defaultB: 16
+            },
+            {
+                id: 'fes',
+                name: 'Solfuro di ferro(II)',
+                formula: 'FeS',
+                reagentA: { symbol: 'Fe', name: 'Ferro', color: '#64748b', stroke: '#334155', radius: 11 },
+                reagentB: { symbol: 'S', name: 'Zolfo', color: '#eab308', stroke: '#a16207', radius: 10 },
+                ratioA: 7,
+                ratioB: 4,
+                exampleText: '7 g di Fe reagiscono con 4 g di S → 11 g di FeS',
+                atomsPerMoleculeA: 1,
+                atomsPerMoleculeB: 1,
+                defaultA: 14,
+                defaultB: 12
+            },
+            {
+                id: 'co2',
+                name: 'Diossido di carbonio',
+                formula: 'CO₂',
+                reagentA: { symbol: 'C', name: 'Carbonio', color: '#1e293b', stroke: '#0f172a', radius: 10 },
+                reagentB: { symbol: 'O', name: 'Ossigeno', color: '#ef4444', stroke: '#b91c1c', radius: 9 },
+                ratioA: 3,
+                ratioB: 8,
+                exampleText: '3 g di C reagiscono con 8 g di O → 11 g di CO₂',
+                atomsPerMoleculeA: 1,
+                atomsPerMoleculeB: 2,
+                defaultA: 6,
+                defaultB: 20
+            },
+            {
+                id: 'mgo',
+                name: 'Ossido di magnesio',
+                formula: 'MgO',
+                reagentA: { symbol: 'Mg', name: 'Magnesio', color: '#a855f7', stroke: '#7e22ce', radius: 11 },
+                reagentB: { symbol: 'O', name: 'Ossigeno', color: '#f43f5e', stroke: '#be123c', radius: 9 },
+                ratioA: 3,
+                ratioB: 2,
+                exampleText: '3 g di Mg reagiscono con 2 g di O → 5 g di MgO',
+                atomsPerMoleculeA: 1,
+                atomsPerMoleculeB: 1,
+                defaultA: 12,
+                defaultB: 10
+            }
+        ];
+
+        // Stato globale dell'applicazione
+        const state = {
+            selectedCompound: COMPOUNDS[0],
+            massA: 4,
+            massB: 16,
+            isReacted: false,
+            lastResult: null,
+            // Registro esperimenti salvati diviso per composto
+            logs: {
+                h2o: [],
+                fes: [],
+                co2: [],
+                mgo: []
+            },
+            // Stato del Quiz
+            quiz: {
+                score: 0,
+                total: 0,
+                currentQuestion: null,
+                answered: false
+            }
+        };
+
+        // Riferimenti DOM
+        const dom = {
+            compoundSelector: document.getElementById('compound-selector'),
+            ratioHintText: document.getElementById('ratio-hint-text'),
+            dotA: document.getElementById('dot-a'),
+            dotB: document.getElementById('dot-b'),
+            labelReagentA: document.getElementById('label-reagent-a'),
+            labelReagentB: document.getElementById('label-reagent-b'),
+            inputMassA: document.getElementById('input-mass-a'),
+            sliderMassA: document.getElementById('slider-mass-a'),
+            inputMassB: document.getElementById('input-mass-b'),
+            sliderMassB: document.getElementById('slider-mass-b'),
+            btnStoichExact: document.getElementById('btn-stoich-exact'),
+            btnRandomMix: document.getElementById('btn-random-mix'),
+            btnStartReaction: document.getElementById('btn-start-reaction'),
+            btnResetReactor: document.getElementById('btn-reset-reactor'),
+            reactorStatusText: document.getElementById('reactor-status-text'),
+            reactionBadge: document.getElementById('reaction-badge'),
+            beakerWrapper: document.getElementById('beaker-wrapper'),
+            reactorCanvas: document.getElementById('reactor-canvas'),
+            legendDotA: document.getElementById('legend-dot-a'),
+            legendDotB: document.getElementById('legend-dot-b'),
+            legendNameA: document.getElementById('legend-name-a'),
+            legendNameB: document.getElementById('legend-name-b'),
+            legendMol1: document.getElementById('legend-mol-1'),
+            legendMol2: document.getElementById('legend-mol-2'),
+            legendProductName: document.getElementById('legend-product-name'),
+            balInitialMass: document.getElementById('bal-initial-mass'),
+            balProdFormula: document.getElementById('bal-prod-formula'),
+            balProductMass: document.getElementById('bal-product-mass'),
+            balExcessMass: document.getElementById('bal-excess-mass'),
+            diagnosisBox: document.getElementById('diagnosis-box'),
+            proustRatioValue: document.getElementById('proust-ratio-value'),
+            proustRatioTarget: document.getElementById('proust-ratio-target'),
+            lavoisierCheck: document.getElementById('lavoisier-check'),
+            btnSaveExperiment: document.getElementById('btn-save-experiment'),
+            logCompoundName: document.getElementById('log-compound-name'),
+            thAInit: document.getElementById('th-a-init'),
+            thBInit: document.getElementById('th-b-init'),
+            experimentTableBody: document.getElementById('experiment-table-body'),
+            btnClearLog: document.getElementById('btn-clear-log'),
+            chartSlopeLabel: document.getElementById('chart-slope-label'),
+            proustChartCanvas: document.getElementById('proust-chart-canvas'),
+            // Quiz DOM
+            quizScore: document.getElementById('quiz-score'),
+            quizTotal: document.getElementById('quiz-total'),
+            quizCategoryBadge: document.getElementById('quiz-category-badge'),
+            quizCompoundHint: document.getElementById('quiz-compound-hint'),
+            quizQuestionText: document.getElementById('quiz-question-text'),
+            quizAnswerArea: document.getElementById('quiz-answer-area'),
+            btnCheckAnswer: document.getElementById('btn-check-answer'),
+            btnNextQuestion: document.getElementById('btn-next-question'),
+            quizFeedbackPanel: document.getElementById('quiz-feedback-panel')
+        };
+
+        // =========================================================================
+        // 1. GESTIONE SIMULAZIONE PARTICELLARE SU CANVAS
+        // =========================================================================
+        let particles = [];
+        let animationFrameId = null;
+
+        /**
+         * Ridimensiona il canvas del reattore adattandolo al contenitore (High-DPI aware)
+         */
+        function resizeReactorCanvas() {
+            const rect = dom.beakerWrapper.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            dom.reactorCanvas.width = rect.width * dpr;
+            dom.reactorCanvas.height = rect.height * dpr;
+            const ctx = dom.reactorCanvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+        }
+
+        /**
+         * Genera le particelle (atomi liberi o molecole formate + eccesso) nel reattore
+         */
+        function buildParticles() {
+            const rect = dom.beakerWrapper.getBoundingClientRect();
+            const width = rect.width || 300;
+            const height = rect.height || 300;
+            const comp = state.selectedCompound;
+            particles = [];
+
+            // Fattore di scala visivo per rappresentare i grammi con un numero leggibile di particelle (max ~45)
+            const totalMass = state.massA + state.massB;
+            const scaleFactor = Math.min(1.2, 42 / Math.max(totalMass, 15));
+
+            if (!state.isReacted) {
+                // STATO PRE-REAZIONE: Atomi A e Atomi B separati che si muovono liberamente
+                const countA = Math.max(2, Math.round(state.massA * scaleFactor));
+                const countB = Math.max(2, Math.round(state.massB * scaleFactor));
+
+                for (let i = 0; i < countA; i++) {
+                    particles.push({
+                        type: 'atomA',
+                        x: 25 + Math.random() * (width - 50),
+                        y: 25 + Math.random() * (height - 50),
+                        vx: (Math.random() - 0.5) * 1.6,
+                        vy: (Math.random() - 0.5) * 1.6,
+                        radius: comp.reagentA.radius,
+                        color: comp.reagentA.color,
+                        stroke: comp.reagentA.stroke,
+                        label: comp.reagentA.symbol
+                    });
+                }
+
+                for (let i = 0; i < countB; i++) {
+                    particles.push({
+                        type: 'atomB',
+                        x: 25 + Math.random() * (width - 50),
+                        y: 25 + Math.random() * (height - 50),
+                        vx: (Math.random() - 0.5) * 1.6,
+                        vy: (Math.random() - 0.5) * 1.6,
+                        radius: comp.reagentB.radius,
+                        color: comp.reagentB.color,
+                        stroke: comp.reagentB.stroke,
+                        label: comp.reagentB.symbol
+                    });
+                }
+            } else if (state.lastResult) {
+                // STATO POST-REAZIONE: Molecole del prodotto + eventuali atomi del reagente in eccesso
+                const res = state.lastResult;
+                // Numero di unità molecolari proporzionale alla massa reagita
+                const reactedUnits = Math.max(1, Math.round((res.reactedA / comp.ratioA) * comp.ratioA * scaleFactor * 0.75));
+
+                for (let i = 0; i < reactedUnits; i++) {
+                    particles.push({
+                        type: 'molecule',
+                        x: 35 + Math.random() * (width - 70),
+                        y: 35 + Math.random() * (height - 85), // Restano nella zona centrale/superiore
+                        vx: (Math.random() - 0.5) * 0.9,
+                        vy: (Math.random() - 0.5) * 0.9,
+                        angle: Math.random() * Math.PI * 2,
+                        vAngle: (Math.random() - 0.5) * 0.02
+                    });
+                }
+
+                // Particelle del reagente in eccesso (non reagite, tendono a depositarsi o vagare sul fondo)
+                if (res.excessMass > 0.01) {
+                    const isExcessA = res.excessReagent === 'A';
+                    const reagentObj = isExcessA ? comp.reagentA : comp.reagentB;
+                    const excessCount = Math.max(1, Math.round(res.excessMass * scaleFactor));
+
+                    for (let i = 0; i < excessCount; i++) {
+                        particles.push({
+                            type: 'excess',
+                            x: 25 + Math.random() * (width - 50),
+                            y: height - 35 + (Math.random() - 0.5) * 25,
+                            vx: (Math.random() - 0.5) * 0.5,
+                            vy: (Math.random() - 0.5) * 0.3,
+                            radius: reagentObj.radius,
+                            color: reagentObj.color,
+                            stroke: reagentObj.stroke,
+                            label: reagentObj.symbol
+                        });
+                    }
+                }
+            }
+        }
+
+        /**
+         * Ciclo di animazione continuo del reattore
+         */
+        function animateReactor() {
+            const rect = dom.beakerWrapper.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            const ctx = dom.reactorCanvas.getContext('2d');
+            const comp = state.selectedCompound;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Disegna un leggero menisco liquido sul fondo del reattore
+            ctx.fillStyle = 'rgba(14, 165, 233, 0.06)';
+            ctx.fillRect(0, height * 0.15, width, height * 0.85);
+
+            particles.forEach(p => {
+                // Aggiorna posizione
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.type === 'excess') {
+                    // Gli atomi in eccesso restano confinati nella fascia inferiore (precipitato/residuo)
+                    const minY = height - 65;
+                    const maxY = height - 18;
+                    if (p.x < 20 || p.x > width - 20) p.vx *= -1;
+                    if (p.y < minY || p.y > maxY) p.vy *= -1;
+                    p.x = Math.max(20, Math.min(width - 20, p.x));
+                    p.y = Math.max(minY, Math.min(maxY, p.y));
+                } else {
+                    const margin = p.type === 'molecule' ? 28 : 18;
+                    const maxBottom = state.isReacted && state.lastResult && state.lastResult.excessMass > 0 ? height - 70 : height - margin;
+                    if (p.x < margin || p.x > width - margin) p.vx *= -1;
+                    if (p.y < margin || p.y > maxBottom) p.vy *= -1;
+                    p.x = Math.max(margin, Math.min(width - margin, p.x));
+                    p.y = Math.max(margin, Math.min(maxBottom, p.y));
+                }
+
+                if (p.type === 'molecule') {
+                    p.angle += p.vAngle;
+                    drawMolecule(ctx, p.x, p.y, p.angle, comp);
+                } else {
+                    drawAtom(ctx, p.x, p.y, p.radius, p.color, p.stroke, p.label, p.type === 'excess');
+                }
+            });
+
+            // Etichetta visiva sul fondo se c'è reagente in eccesso
+            if (state.isReacted && state.lastResult && state.lastResult.excessMass > 0.01) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(217, 119, 6, 0.12)';
+                ctx.fillRect(0, height - 62, width, 62);
+                ctx.strokeStyle = 'rgba(217, 119, 6, 0.35)';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(0, height - 62);
+                ctx.lineTo(width, height - 62);
+                ctx.stroke();
+
+                ctx.fillStyle = '#b45309';
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(`Reagente in eccesso non reagito (${state.lastResult.excessMass.toFixed(2)} g)`, width - 12, height - 47);
+                ctx.restore();
+            }
+
+            animationFrameId = requestAnimationFrame(animateReactor);
+        }
+
+        function drawAtom(ctx, x, y, r, color, stroke, label, isExcess) {
+            ctx.save();
+            if (isExcess) {
+                // Alone ambra intorno agli atomi rimasti non reagiti
+                ctx.beginPath();
+                ctx.arc(x, y, r + 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.25)';
+                ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = stroke;
+            ctx.stroke();
+
+            // Simbolo chimico al centro
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${Math.max(9, r)}px Inter, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, x, y + 0.5);
+            ctx.restore();
+        }
+
+        function drawMolecule(ctx, x, y, angle, comp) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            if (comp.id === 'h2o') {
+                // Geometria angolare H2O (1 O centrale + 2 H a ~104.5°)
+                const rO = comp.reagentB.radius;
+                const rH = comp.reagentA.radius;
+                const dist = rO + rH - 2;
+                const ang1 = -0.9;
+                const ang2 = 0.9;
+
+                drawAtom(ctx, Math.cos(ang1) * dist, Math.sin(ang1) * dist, rH, comp.reagentA.color, comp.reagentA.stroke, 'H', false);
+                drawAtom(ctx, Math.cos(ang2) * dist, Math.sin(ang2) * dist, rH, comp.reagentA.color, comp.reagentA.stroke, 'H', false);
+                drawAtom(ctx, 0, 0, rO, comp.reagentB.color, comp.reagentB.stroke, 'O', false);
+            } else if (comp.id === 'co2') {
+                // Geometria lineare CO2 (O = C = O)
+                const rC = comp.reagentA.radius;
+                const rO = comp.reagentB.radius;
+                const dist = rC + rO - 2;
+
+                drawAtom(ctx, -dist, 0, rO, comp.reagentB.color, comp.reagentB.stroke, 'O', false);
+                drawAtom(ctx, dist, 0, rO, comp.reagentB.color, comp.reagentB.stroke, 'O', false);
+                drawAtom(ctx, 0, 0, rC, comp.reagentA.color, comp.reagentA.stroke, 'C', false);
+            } else {
+                // Molecola biatomica (FeS o MgO)
+                const rA = comp.reagentA.radius;
+                const rB = comp.reagentB.radius;
+                const offset = (rA + rB) * 0.42;
+
+                drawAtom(ctx, -offset, 0, rA, comp.reagentA.color, comp.reagentA.stroke, comp.reagentA.symbol, false);
+                drawAtom(ctx, offset, 0, rB, comp.reagentB.color, comp.reagentB.stroke, comp.reagentB.symbol, false);
+            }
+
+            ctx.restore();
+        }
+
+        // =========================================================================
+        // 2. LOGICA STECHIOMETRICA (LEGGE DI PROUST & LAVOISIER)
+        // =========================================================================
+
+        /**
+         * Calcola esattamente quanto prodotto si forma, chi è il reagente limitante e quanto eccesso resta
+         */
+        function calculateStoichiometry(comp, massA, massB) {
+            // Rapporto fisso mA / mB richiesto dal composto
+            const targetRatio = comp.ratioA / comp.ratioB;
+
+            // Quanta massa di B servirebbe per consumare tutta la massa A inserita?
+            const neededBForAllA = massA / targetRatio;
+
+            let reactedA = 0;
+            let reactedB = 0;
+            let excessReagent = 'none'; // 'A', 'B', o 'none'
+            let limitingReagent = 'none';
+            let excessMass = 0;
+
+            // Tolleranza numerica per evitare errori di arrotondamento floating point
+            if (Math.abs(massB - neededBForAllA) < 0.001) {
+                // Proporzioni stechiometriche esatte!
+                reactedA = massA;
+                reactedB = massB;
+                limitingReagent = 'exact';
+                excessReagent = 'none';
+                excessMass = 0;
+            } else if (massB > neededBForAllA) {
+                // A si consuma tutto (Reagente Limitante = A), B è in eccesso
+                reactedA = massA;
+                reactedB = neededBForAllA;
+                limitingReagent = 'A';
+                excessReagent = 'B';
+                excessMass = massB - reactedB;
+            } else {
+                // B si consuma tutto (Reagente Limitante = B), A è in eccesso
+                reactedB = massB;
+                reactedA = massB * targetRatio;
+                limitingReagent = 'B';
+                excessReagent = 'A';
+                excessMass = massA - reactedA;
+            }
+
+            // Legge di Lavoisier: la massa del prodotto è la somma delle masse effettivamente reagite
+            const productMass = reactedA + reactedB;
+            const actualRatio = reactedA / reactedB;
+
+            return {
+                initialA: massA,
+                initialB: massB,
+                initialTotal: massA + massB,
+                reactedA,
+                reactedB,
+                productMass,
+                excessMass,
+                limitingReagent,
+                excessReagent,
+                actualRatio,
+                targetRatio
+            };
+        }
+
+        /**
+         * Avvia la reazione chimica nel simulatore
+         */
+        function runReaction() {
+            const comp = state.selectedCompound;
+            const result = calculateStoichiometry(comp, state.massA, state.massB);
+
+            state.isReacted = true;
+            state.lastResult = result;
+
+            // Effetto visivo sul reattore
+            dom.beakerWrapper.classList.remove('reacting-pulse');
+            void dom.beakerWrapper.offsetWidth; // trigger reflow
+            dom.beakerWrapper.classList.add('reacting-pulse');
+
+            // Aggiorna particelle nel canvas
+            buildParticles();
+
+            // Aggiorna UI stato reattore
+            dom.reactorStatusText.textContent = `Sintesi completata: formato ${comp.name} (${comp.formula})`;
+            dom.reactionBadge.textContent = 'Reazione Completata';
+            dom.reactionBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+
+            // Aggiorna Bilancia Analitica
+            dom.balInitialMass.textContent = `${result.initialTotal.toFixed(2)} g`;
+            dom.balProductMass.textContent = `${result.productMass.toFixed(2)} g`;
+            dom.balExcessMass.textContent = `${result.excessMass.toFixed(2)} g`;
+
+            // Aggiorna Rapporto di Proust e Verifica Lavoisier
+            dom.proustRatioValue.textContent = result.actualRatio.toFixed(3);
+            const finalTotal = result.productMass + result.excessMass;
+            dom.lavoisierCheck.textContent = `${result.initialTotal.toFixed(2)}g = ${finalTotal.toFixed(2)}g ✓`;
+
+            // Messaggio diagnostico dettagliato per lo studente
+            if (result.limitingReagent === 'exact') {
+                dom.diagnosisBox.className = 'p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm space-y-1';
+                dom.diagnosisBox.innerHTML = `
+                    <p class="font-bold text-emerald-900">✨ Proporzioni Stechiometriche Esatte!</p>
+                    <p class="text-xs text-emerald-800 leading-relaxed">
+                        Entrambi i reagenti si sono consumati completamente senza lasciare residui. 
+                        <strong>${result.reactedA.toFixed(2)} g</strong> di ${comp.reagentA.symbol} e 
+                        <strong>${result.reactedB.toFixed(2)} g</strong> di ${comp.reagentB.symbol} rispettano esattamente il rapporto <strong>${comp.ratioA} : ${comp.ratioB}</strong>.
+                    </p>
+                `;
+            } else if (result.limitingReagent === 'A') {
+                dom.diagnosisBox.className = 'p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-sm space-y-1.5';
+                dom.diagnosisBox.innerHTML = `
+                    <p class="font-bold text-slate-900">
+                        Limitante: <span class="text-rose-600">${comp.reagentA.name} (${comp.reagentA.symbol})</span> • 
+                        Eccesso: <span class="text-amber-700">${comp.reagentB.name} (${comp.reagentB.symbol})</span>
+                    </p>
+                    <p class="text-xs text-slate-700 leading-relaxed">
+                        Tutti i <strong>${result.reactedA.toFixed(2)} g</strong> di ${comp.reagentA.symbol} hanno reagito con soli <strong>${result.reactedB.toFixed(2)} g</strong> di ${comp.reagentB.symbol}. 
+                        I restanti <strong>${result.excessMass.toFixed(2)} g</strong> di ${comp.reagentB.symbol} non trovano più atomi di ${comp.reagentA.symbol} e restano sul fondo!
+                    </p>
+                `;
+            } else {
+                dom.diagnosisBox.className = 'p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-sm space-y-1.5';
+                dom.diagnosisBox.innerHTML = `
+                    <p class="font-bold text-slate-900">
+                        Limitante: <span class="text-rose-600">${comp.reagentB.name} (${comp.reagentB.symbol})</span> • 
+                        Eccesso: <span class="text-amber-700">${comp.reagentA.name} (${comp.reagentA.symbol})</span>
+                    </p>
+                    <p class="text-xs text-slate-700 leading-relaxed">
+                        Tutti i <strong>${result.reactedB.toFixed(2)} g</strong> di ${comp.reagentB.symbol} hanno reagito con soli <strong>${result.reactedA.toFixed(2)} g</strong> di ${comp.reagentA.symbol}. 
+                        I restanti <strong>${result.excessMass.toFixed(2)} g</strong> di ${comp.reagentA.symbol} non trovano più atomi di ${comp.reagentB.symbol} e restano sul fondo!
+                    </p>
+                `;
+            }
+
+            // Abilita pulsante di salvataggio nel registro
+            dom.btnSaveExperiment.disabled = false;
+        }
+
+        /**
+         * Ripristina il reattore allo stato iniziale (pre-reazione) con le masse correnti
+         */
+        function resetReactorToPreState() {
+            const comp = state.selectedCompound;
+            state.isReacted = false;
+            state.lastResult = null;
+
+            buildParticles();
+
+            dom.reactorStatusText.textContent = 'Pronto: reagenti separati nel recipiente';
+            dom.reactionBadge.textContent = 'In attesa';
+            dom.reactionBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+
+            const total = state.massA + state.massB;
+            dom.balInitialMass.textContent = `${total.toFixed(2)} g`;
+            dom.balProdFormula.textContent = comp.formula;
+            dom.balProductMass.textContent = '-- g';
+            dom.balExcessMass.textContent = '-- g';
+
+            dom.proustRatioValue.textContent = '--';
+            dom.proustRatioTarget.textContent = `Atteso: ${(comp.ratioA / comp.ratioB).toFixed(3)} (${comp.ratioA}:${comp.ratioB})`;
+            dom.lavoisierCheck.textContent = 'In attesa...';
+
+            dom.diagnosisBox.className = 'p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm space-y-1.5';
+            dom.diagnosisBox.innerHTML = `
+                <p class="font-semibold text-slate-700">Premi "Avvia Reazione" per sintetizzare ${comp.formula}.</p>
+                <p class="text-xs text-slate-500">Hai inserito ${state.massA.toFixed(1)} g di ${comp.reagentA.symbol} e ${state.massB.toFixed(1)} g di ${comp.reagentB.symbol}.</p>
+            `;
+
+            dom.btnSaveExperiment.disabled = true;
+        }
+
+        // =========================================================================
+        // 3. GESTIONE INTERFACCIA, SELEZIONE COMPOSTI, TABELLA E GRAFICO
+        // =========================================================================
+
+        function renderCompoundCards() {
+            dom.compoundSelector.innerHTML = '';
+            COMPOUNDS.forEach(comp => {
+                const isSelected = comp.id === state.selectedCompound.id;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.setAttribute('role', 'radio');
+                btn.setAttribute('aria-checked', isSelected);
+                btn.className = `p-4 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                    isSelected
+                        ? 'bg-lab-50 border-lab-600 ring-2 ring-lab-500/30 shadow-sm'
+                        : 'bg-white border-slate-200 hover:border-lab-300 hover:bg-slate-50/70'
+                }`;
+
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between w-full mb-1.5">
+                        <span class="font-extrabold text-lg ${isSelected ? 'text-lab-900' : 'text-slate-900'}">${comp.formula}</span>
+                        <span class="px-2 py-0.5 rounded-md font-mono text-xs font-bold ${
+                            isSelected ? 'bg-lab-600 text-white' : 'bg-slate-100 text-slate-700'
+                        }">
+                            ${comp.reagentA.symbol} : ${comp.reagentB.symbol} = ${comp.ratioA} : ${comp.ratioB}
+                        </span>
+                    </div>
+                    <div class="font-semibold text-sm text-slate-700">${comp.name}</div>
+                    <div class="text-xs text-slate-500 mt-1">${comp.exampleText}</div>
+                `;
+
+                btn.addEventListener('click', () => selectCompound(comp.id));
+                dom.compoundSelector.appendChild(btn);
+            });
+        }
+
+        function selectCompound(compoundId) {
+            const comp = COMPOUNDS.find(c => c.id === compoundId);
+            if (!comp) return;
+
+            state.selectedCompound = comp;
+            state.massA = comp.defaultA;
+            state.massB = comp.defaultB;
+
+            // Aggiorna input e slider
+            dom.inputMassA.value = state.massA;
+            dom.sliderMassA.value = state.massA;
+            dom.inputMassB.value = state.massB;
+            dom.sliderMassB.value = state.massB;
+
+            // Aggiorna etichette e colori dei reagenti
+            dom.ratioHintText.textContent = `Rapporto fisso ${comp.reagentA.symbol} : ${comp.reagentB.symbol} = ${comp.ratioA} : ${comp.ratioB}`;
+            dom.dotA.style.backgroundColor = comp.reagentA.color;
+            dom.dotB.style.backgroundColor = comp.reagentB.color;
+            dom.labelReagentA.textContent = `${comp.reagentA.name} (${comp.reagentA.symbol})`;
+            dom.labelReagentB.textContent = `${comp.reagentB.name} (${comp.reagentB.symbol})`;
+
+            // Aggiorna legenda reattore
+            dom.legendDotA.style.backgroundColor = comp.reagentA.color;
+            dom.legendDotB.style.backgroundColor = comp.reagentB.color;
+            dom.legendNameA.textContent = `Atomi ${comp.reagentA.symbol}`;
+            dom.legendNameB.textContent = `Atomi ${comp.reagentB.symbol}`;
+            dom.legendMol1.style.backgroundColor = comp.reagentA.color;
+            dom.legendMol2.style.backgroundColor = comp.reagentB.color;
+            dom.legendProductName.textContent = comp.formula;
+
+            // Aggiorna intestazioni registro
+            dom.logCompoundName.textContent = `${comp.name} (${comp.formula})`;
+            dom.thAInit.textContent = `m(${comp.reagentA.symbol}) iniz.`;
+            dom.thBInit.textContent = `m(${comp.reagentB.symbol}) iniz.`;
+            dom.chartSlopeLabel.textContent = `Pendenza k = ${(comp.ratioA / comp.ratioB).toFixed(3)}`;
+
+            renderCompoundCards();
+            resetReactorToPreState();
+            renderExperimentTable();
+            drawProustChart();
+        }
+
+        function syncMassInputs(reagent, value) {
+            let num = parseFloat(value);
+            if (isNaN(num)) num = 1;
+            num = Math.max(1, Math.min(100, num));
+
+            if (reagent === 'A') {
+                state.massA = num;
+                dom.inputMassA.value = num;
+                dom.sliderMassA.value = num;
+            } else {
+                state.massB = num;
+                dom.inputMassB.value = num;
+                dom.sliderMassB.value = num;
+            }
+
+            // Se l'utente cambia le dosi dopo una reazione, torna allo stato pre-reazione
+            resetReactorToPreState();
+        }
+
+        /**
+         * Salva la prova corrente nella tabella del registro sperimentale
+         */
+        function saveCurrentExperiment() {
+            if (!state.isReacted || !state.lastResult) return;
+
+            const compId = state.selectedCompound.id;
+            state.logs[compId].push({ ...state.lastResult });
+
+            dom.btnSaveExperiment.disabled = true;
+            renderExperimentTable();
+            drawProustChart();
+        }
+
+        function renderExperimentTable() {
+            const comp = state.selectedCompound;
+            const entries = state.logs[comp.id];
+
+            if (!entries || entries.length === 0) {
+                dom.experimentTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-8 px-4 text-center font-sans text-slate-400">
+                            Nessuna prova registrata per <strong>${comp.name} (${comp.formula})</strong>. Esegui una reazione e clicca su <strong>"Registra Prova nella Tabella"</strong>.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            dom.experimentTableBody.innerHTML = entries.map((item, idx) => {
+                const excessLabel = item.excessMass > 0.01
+                    ? `${item.excessMass.toFixed(2)}g (${item.excessReagent === 'A' ? comp.reagentA.symbol : comp.reagentB.symbol})`
+                    : '0.00 g';
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 px-3 font-bold text-slate-500">${idx + 1}</td>
+                        <td class="py-2.5 px-3 text-slate-800">${item.initialA.toFixed(2)} g</td>
+                        <td class="py-2.5 px-3 text-slate-800">${item.initialB.toFixed(2)} g</td>
+                        <td class="py-2.5 px-3 font-bold text-emerald-700">${item.productMass.toFixed(2)} g</td>
+                        <td class="py-2.5 px-3 text-amber-700">${excessLabel}</td>
+                        <td class="py-2.5 px-3 font-extrabold text-lab-800 bg-lab-50/70">
+                            ${item.reactedA.toFixed(1)} / ${item.reactedB.toFixed(1)} = ${item.actualRatio.toFixed(3)}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Disegna il grafico cartesiano di proporzionalità diretta m(A reagita) su Y vs m(B reagita) su X
+         */
+        function drawProustChart() {
+            const canvas = dom.proustChartCanvas;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const w = rect.width;
+            const h = rect.height;
+            const padLeft = 42;
+            const padBottom = 32;
+            const padTop = 18;
+            const padRight = 20;
+
+            const plotW = w - padLeft - padRight;
+            const plotH = h - padTop - padBottom;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const comp = state.selectedCompound;
+            const entries = state.logs[comp.id] || [];
+            const k = comp.ratioA / comp.ratioB;
+
+            // Scala assi dinamica (minimo 20g su X, adattata ai punti registrati)
+            let maxX = 25;
+            entries.forEach(e => {
+                if (e.reactedB > maxX * 0.85) maxX = Math.ceil((e.reactedB * 1.2) / 10) * 10;
+            });
+            const maxY = Math.max(10, Math.ceil((maxX * k * 1.15) / 5) * 5);
+
+            const toCanvasX = (valX) => padLeft + (valX / maxX) * plotW;
+            const toCanvasY = (valY) => padTop + plotH - (valY / maxY) * plotH;
+
+            // Griglia leggera
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            for (let i = 1; i <= 4; i++) {
+                const gx = padLeft + (plotW / 4) * i;
+                const gy = padTop + (plotH / 4) * i;
+                ctx.beginPath(); ctx.moveTo(gx, padTop); ctx.lineTo(gx, padTop + plotH); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(padLeft, gy); ctx.lineTo(padLeft + plotW, gy); ctx.stroke();
+            }
+
+            // Assi cartesiani
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(padLeft, padTop);
+            ctx.lineTo(padLeft, padTop + plotH);
+            ctx.lineTo(padLeft + plotW, padTop + plotH);
+            ctx.stroke();
+
+            // Retta teorica y = k * x
+            ctx.save();
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(toCanvasX(0), toCanvasY(0));
+            const endX = Math.min(maxX, maxY / k);
+            ctx.lineTo(toCanvasX(endX), toCanvasY(endX * k));
+            ctx.stroke();
+            ctx.restore();
+
+            // Etichette assi
+            ctx.fillStyle = '#475569';
+            ctx.font = '600 10px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Massa ${comp.reagentB.symbol} reagita (g)`, padLeft + plotW / 2, h - 6);
+
+            ctx.save();
+            ctx.translate(12, padTop + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(`Massa ${comp.reagentA.symbol} (g)`, 0, 0);
+            ctx.restore();
+
+            // Valori estremi sugli assi
+            ctx.font = '10px JetBrains Mono, monospace';
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'right';
+            ctx.fillText(maxY.toFixed(0), padLeft - 5, padTop + 8);
+            ctx.fillText('0', padLeft - 5, padTop + plotH);
+            ctx.textAlign = 'center';
+            ctx.fillText(maxX.toFixed(0), padLeft + plotW, padTop + plotH + 13);
+
+            // Punti sperimentali registrati
+            entries.forEach((e, idx) => {
+                const cx = toCanvasX(e.reactedB);
+                const cy = toCanvasY(e.reactedA);
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, 5.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#0ea5e9';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 10px Inter, sans-serif';
+                ctx.fillText(`#${idx + 1}`, cx, cy - 9);
+            });
+        }
+
+        // =========================================================================
+        // 4. GENERATORE DI ESERCIZI STECHIOMETRICI (MODALITÀ SFIDA)
+        // =========================================================================
+
+        function generateQuizQuestion() {
+            state.quiz.answered = false;
+            const comp = COMPOUNDS[Math.floor(Math.random() * COMPOUNDS.length)];
+            const type = Math.floor(Math.random() * 3); // 0: calcolo prodotto, 1: limitante, 2: calcolo eccesso
+
+            dom.quizCompoundHint.textContent = `Composto: ${comp.formula} (${comp.reagentA.symbol} : ${comp.reagentB.symbol} = ${comp.ratioA} : ${comp.ratioB})`;
+            dom.btnCheckAnswer.disabled = false;
+
+            // Ripristina pannello feedback neutro
+            dom.quizFeedbackPanel.className = 'p-5 rounded-2xl border border-slate-200 bg-slate-50/70 min-h-[220px] flex flex-col justify-center';
+            dom.quizFeedbackPanel.innerHTML = `
+                <div class="text-center space-y-2 text-slate-400">
+                    <p class="text-sm font-medium text-slate-600">Inserisci o seleziona la risposta per verificare il procedimento.</p>
+                    <p class="text-xs font-mono">Rapporto in massa ${comp.reagentA.symbol} : ${comp.reagentB.symbol} = ${comp.ratioA} : ${comp.ratioB}</p>
+                </div>
+            `;
+
+            if (type === 0) {
+                // TIPO 0: Calcolo della massa di prodotto da una quantità esatta di un reagente
+                const multiplier = Math.floor(Math.random() * 6) + 2; // da 2 a 7
+                const givenA = comp.ratioA * multiplier;
+                const neededB = comp.ratioB * multiplier;
+                const expectedProduct = givenA + neededB;
+
+                dom.quizCategoryBadge.textContent = '1. Calcolo del Prodotto';
+                dom.quizQuestionText.innerHTML = `
+                    Nel composto <strong>${comp.name} (${comp.formula})</strong>, il rapporto di combinazione in massa tra 
+                    <strong>${comp.reagentA.name} (${comp.reagentA.symbol})</strong> e <strong>${comp.reagentB.name} (${comp.reagentB.symbol})</strong> è 
+                    <span class="font-mono bg-slate-200/70 px-1.5 py-0.5 rounded">${comp.ratioA} : ${comp.ratioB}</span>.<br><br>
+                    Quanti grammi totali di <strong>${comp.formula}</strong> si ottengono facendo reagire completamente <strong>${givenA} g</strong> di ${comp.reagentA.symbol}?
+                `;
+
+                state.quiz.currentQuestion = {
+                    inputType: 'number',
+                    correctAnswer: expectedProduct,
+                    tolerance: 0.1,
+                    explanation: `
+                        <ol class="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-slate-700">
+                            <li>Impostiamo la proporzione con il rapporto fisso <strong>${comp.ratioA} : ${comp.ratioB}</strong>:
+                                <div class="font-mono bg-white p-2 rounded border border-slate-200 my-1">${comp.ratioA} : ${comp.ratioB} = ${givenA} g : m(${comp.reagentB.symbol})</div>
+                            </li>
+                            <li>Calcoliamo la massa di ${comp.reagentB.symbol} necessaria:
+                                <div class="font-mono bg-white p-2 rounded border border-slate-200 my-1">m(${comp.reagentB.symbol}) = (${comp.ratioB} × ${givenA}) / ${comp.ratioA} = <strong>${neededB} g</strong></div>
+                            </li>
+                            <li>Per la Legge di Lavoisier, la massa del prodotto è la somma dei reagenti:
+                                <div class="font-mono bg-white p-2 rounded border border-slate-200 my-1">m(${comp.formula}) = ${givenA} g + ${neededB} g = <strong>${expectedProduct} g</strong></div>
+                            </li>
+                        </ol>
+                    `
+                };
+
+                dom.quizAnswerArea.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <label for="quiz-num-input" class="text-sm font-bold text-slate-700">Massa di ${comp.formula} formata:</label>
+                        <input type="number" id="quiz-num-input" step="0.1" placeholder="Es. 36"
+                            class="w-36 px-3.5 py-2.5 font-mono font-bold text-lg bg-white border-2 border-slate-300 rounded-xl focus:border-indigo-600 outline-none">
+                        <span class="font-bold text-slate-500">grammi (g)</span>
+                    </div>
+                `;
+            } else if (type === 1) {
+                // TIPO 1: Individuare il Reagente Limitante
+                const mult = Math.floor(Math.random() * 5) + 2;
+                const exactA = comp.ratioA * mult;
+                const exactB = comp.ratioB * mult;
+                const isALimiting = Math.random() > 0.5;
+                const extra = (Math.floor(Math.random() * 4) + 2) * 2;
+
+                const massA = isALimiting ? exactA : exactA + extra;
+                const massB = isALimiting ? exactB + extra : exactB;
+                const correctChoice = isALimiting ? 'A' : 'B';
+
+                dom.quizCategoryBadge.textContent = '2. Reagente Limitante';
+                dom.quizQuestionText.innerHTML = `
+                    Si mescolano in un reattore <strong>${massA} g di ${comp.reagentA.name} (${comp.reagentA.symbol})</strong> e 
+                    <strong>${massB} g di ${comp.reagentB.name} (${comp.reagentB.symbol})</strong> per sintetizzare ${comp.formula} 
+                    (rapporto in massa <span class="font-mono">${comp.ratioA} : ${comp.ratioB}</span>).<br><br>
+                    Qual è il <strong>reagente limitante</strong> (quello che si esaurisce per primo)?
+                `;
+
+                state.quiz.currentQuestion = {
+                    inputType: 'choice',
+                    correctAnswer: correctChoice,
+                    explanation: `
+                        <ol class="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-slate-700">
+                            <li>Verifichiamo quanto ${comp.reagentB.symbol} serve per reagire con tutti i <strong>${massA} g</strong> di ${comp.reagentA.symbol}:
+                                <div class="font-mono bg-white p-2 rounded border border-slate-200 my-1">m(${comp.reagentB.symbol}) necessaria = (${massA} × ${comp.ratioB}) / ${comp.ratioA} = <strong>${((massA * comp.ratioB) / comp.ratioA).toFixed(1)} g</strong></div>
+                            </li>
+                            <li>Confrontiamo con i <strong>${massB} g</strong> disponibili nel reattore:
+                                ${isALimiting
+                                    ? `Abbiamo ${massB} g di ${comp.reagentB.symbol}, più dei ${exactB} g richiesti! Quindi <strong>${comp.reagentB.symbol} è in eccesso</strong> e <strong>${comp.reagentA.symbol} è il reagente limitante</strong>.`
+                                    : `Servirebbero ${((massA * comp.ratioB) / comp.ratioA).toFixed(1)} g di ${comp.reagentB.symbol}, ma ne abbiamo solo ${massB} g! Quindi <strong>${comp.reagentB.symbol} si esaurisce per primo (limitante)</strong>.`
+                                }
+                            </li>
+                        </ol>
+                    `
+                };
+
+                dom.quizAnswerArea.innerHTML = `
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 border-slate-200 hover:border-indigo-300 cursor-pointer bg-white transition">
+                            <input type="radio" name="quiz-choice" value="A" class="w-4 h-4 text-indigo-600">
+                            <span class="font-bold text-slate-800">${comp.reagentA.name} (${comp.reagentA.symbol})</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3.5 rounded-xl border-2 border-slate-200 hover:border-indigo-300 cursor-pointer bg-white transition">
+                            <input type="radio" name="quiz-choice" value="B" class="w-4 h-4 text-indigo-600">
+                            <span class="font-bold text-slate-800">${comp.reagentB.name} (${comp.reagentB.symbol})</span>
+                        </label>
+                    </div>
+                `;
+            } else {
+                // TIPO 2: Calcolare la massa del reagente in eccesso rimasta non reagita
+                const mult = Math.floor(Math.random() * 4) + 2;
+                const exactA = comp.ratioA * mult;
+                const exactB = comp.ratioB * mult;
+                const excessAmount = (Math.floor(Math.random() * 5) + 2);
+                const massA = exactA;
+                const massB = exactB + excessAmount;
+
+                dom.quizCategoryBadge.textContent = '3. Calcolo Reagente in Eccesso';
+                dom.quizQuestionText.innerHTML = `
+                    Facciamo reagire <strong>${massA} g di ${comp.reagentA.symbol}</strong> con <strong>${massB} g di ${comp.reagentB.symbol}</strong> 
+                    per ottenere <strong>${comp.formula}</strong> (rapporto <span class="font-mono">${comp.reagentA.symbol} : ${comp.reagentB.symbol} = ${comp.ratioA} : ${comp.ratioB}</span>).<br><br>
+                    Quanti grammi di <strong>${comp.reagentB.name} (${comp.reagentB.symbol})</strong> restano <strong>non reagiti</strong> in eccesso al termine della reazione?
+                `;
+
+                state.quiz.currentQuestion = {
+                    inputType: 'number',
+                    correctAnswer: excessAmount,
+                    tolerance: 0.1,
+                    explanation: `
+                        <ol class="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-slate-700">
+                            <li>Calcoliamo la massa di ${comp.reagentB.symbol} che reagisce effettivamente con ${massA} g di ${comp.reagentA.symbol}:
+                                <div class="font-mono bg-white p-2 rounded border border-slate-200 my-1">m(${comp.reagentB.symbol} reagita) = (${massA} × ${comp.ratioB}) / ${comp.ratioA} = <strong>${exactB} g</strong></div>
+                            </li>
+                            <li>Sottraiamo la massa reagita da quella iniziale messa nel reattore:
+                                <div class="font-mono bg-white p-2 rounded border border-slate-200 my-1">Eccesso = ${massB} g - ${exactB} g = <strong>${excessAmount} g</strong></div>
+                            </li>
+                        </ol>
+                    `
+                };
+
+                dom.quizAnswerArea.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <label for="quiz-num-input" class="text-sm font-bold text-slate-700">Eccesso di ${comp.reagentB.symbol} rimasto:</label>
+                        <input type="number" id="quiz-num-input" step="0.1" placeholder="Es. 4"
+                            class="w-36 px-3.5 py-2.5 font-mono font-bold text-lg bg-white border-2 border-slate-300 rounded-xl focus:border-indigo-600 outline-none">
+                        <span class="font-bold text-slate-500">grammi (g)</span>
+                    </div>
+                `;
+            }
+        }
+
+        function checkQuizAnswer() {
+            if (state.quiz.answered || !state.quiz.currentQuestion) return;
+            const q = state.quiz.currentQuestion;
+            let isCorrect = false;
+            let hasInput = false;
+
+            if (q.inputType === 'number') {
+                const inputEl = document.getElementById('quiz-num-input');
+                const val = parseFloat(inputEl.value);
+                if (!isNaN(val)) {
+                    hasInput = true;
+                    isCorrect = Math.abs(val - q.correctAnswer) <= q.tolerance;
+                }
+            } else if (q.inputType === 'choice') {
+                const selected = document.querySelector('input[name="quiz-choice"]:checked');
+                if (selected) {
+                    hasInput = true;
+                    isCorrect = selected.value === q.correctAnswer;
+                }
+            }
+
+            if (!hasInput) {
+                dom.quizFeedbackPanel.className = 'p-5 rounded-2xl border border-amber-300 bg-amber-50 flex flex-col justify-center';
+                dom.quizFeedbackPanel.innerHTML = `<p class="text-sm font-bold text-amber-800">⚠️ Inserisci o seleziona una risposta prima di verificare!</p>`;
+                return;
+            }
+
+            state.quiz.answered = true;
+            state.quiz.total += 1;
+            if (isCorrect) state.quiz.score += 1;
+
+            dom.quizScore.textContent = state.quiz.score;
+            dom.quizTotal.textContent = state.quiz.total;
+            dom.btnCheckAnswer.disabled = true;
+
+            if (isCorrect) {
+                dom.quizFeedbackPanel.className = 'p-5 rounded-2xl border-2 border-emerald-400 bg-emerald-50/80 space-y-3';
+                dom.quizFeedbackPanel.innerHTML = `
+                    <div class="flex items-center gap-2 text-emerald-800 font-extrabold text-base">
+                        <span>✅ Risposta Corretta! Ottimo lavoro!</span>
+                    </div>
+                    ${q.explanation}
+                `;
+            } else {
+                dom.quizFeedbackPanel.className = 'p-5 rounded-2xl border-2 border-rose-300 bg-rose-50/80 space-y-3';
+                dom.quizFeedbackPanel.innerHTML = `
+                    <div class="flex items-center gap-2 text-rose-800 font-extrabold text-base">
+                        <span>❌ Risposta non esatta. Vediamo il procedimento:</span>
+                    </div>
+                    ${q.explanation}
+                `;
+            }
+        }
+
+        // =========================================================================
+        // 5. INIZIALIZZAZIONE E EVENT LISTENERS
+        // =========================================================================
+
+        function initApp() {
+            // Sincronizzazione slider e input numerici
+            dom.inputMassA.addEventListener('input', (e) => syncMassInputs('A', e.target.value));
+            dom.sliderMassA.addEventListener('input', (e) => syncMassInputs('A', e.target.value));
+            dom.inputMassB.addEventListener('input', (e) => syncMassInputs('B', e.target.value));
+            dom.sliderMassB.addEventListener('input', (e) => syncMassInputs('B', e.target.value));
+
+            // Pulsanti preimpostati rapidi
+            dom.btnStoichExact.addEventListener('click', () => {
+                const comp = state.selectedCompound;
+                // Sceglie un multiplo intero che stia comodamente sotto i 100g
+                const maxMult = Math.floor(80 / Math.max(comp.ratioA, comp.ratioB));
+                const mult = Math.max(1, Math.floor(Math.random() * maxMult) + 1);
+                syncMassInputs('A', comp.ratioA * mult);
+                syncMassInputs('B', comp.ratioB * mult);
+            });
+
+            dom.btnRandomMix.addEventListener('click', () => {
+                const randA = Math.floor(Math.random() * 45) + 3;
+                const randB = Math.floor(Math.random() * 55) + 4;
+                syncMassInputs('A', randA);
+                syncMassInputs('B', randB);
+            });
+
+            // Pulsanti principali reattore e registro
+            dom.btnStartReaction.addEventListener('click', runReaction);
+            dom.btnResetReactor.addEventListener('click', resetReactorToPreState);
+            dom.btnSaveExperiment.addEventListener('click', saveCurrentExperiment);
+            dom.btnClearLog.addEventListener('click', () => {
+                state.logs[state.selectedCompound.id] = [];
+                renderExperimentTable();
+                drawProustChart();
+            });
+
+            // Eventi Quiz
+            dom.btnCheckAnswer.addEventListener('click', checkQuizAnswer);
+            dom.btnNextQuestion.addEventListener('click', generateQuizQuestion);
+
+            // Gestione resize finestra per i due Canvas
+            window.addEventListener('resize', () => {
+                resizeReactorCanvas();
+                drawProustChart();
+            });
+
+            // Avvio iniziale
+            resizeReactorCanvas();
+            selectCompound('h2o');
+            animateReactor();
+            generateQuizQuestion();
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
